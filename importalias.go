@@ -37,10 +37,17 @@ func main() {
 
 	db := session.DB("") // Use database specified in URL
 	mainrouter := mux.NewRouter()
+
 	approuter := mainrouter.Host(options.Hostname).Subrouter()
-	approuter.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
+
 	apirouter := approuter.PathPrefix("/api").Subrouter()
-	_, _ = db, apirouter
+	api1router := apirouter.PathPrefix("/v1").Subrouter()
+
+	approuter.PathPrefix("/").Handler(http.FileServer(http.Dir(options.StaticDir)))
+
+	mainrouter.PathPrefix("/").HandlerFunc(foreignHostname)
+
+	_, _ = db, api1router
 	log.Printf("Running webserver...")
 	log.Fatalf("Failed to run webserver: %s", http.ListenAndServe(options.ListenAddress.String(), mainrouter))
 }
