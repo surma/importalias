@@ -27,7 +27,6 @@ var (
 )
 
 func foreignHostname(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Request for %s", r.RequestURI)
 	if idx := strings.Index(r.Host, ":"); idx != -1 {
 		r.Host = r.Host[:idx]
 	}
@@ -37,7 +36,7 @@ func foreignHostname(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.URL.Path == "/" {
-		ROOT_TEMPLATE.Execute(w, aliases)
+		TEMPLATE.Execute(w, aliases)
 		return
 	}
 
@@ -51,7 +50,7 @@ func foreignHostname(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, alias.ForwardURL, http.StatusMovedPermanently)
 		return
 	}
-	SINGLE_TEMPLATE.Execute(w, alias)
+	TEMPLATE.Execute(w, []Alias{alias})
 }
 
 func isGoGetRequest(r *http.Request) bool {
@@ -67,15 +66,10 @@ func isGoGetRequest(r *http.Request) bool {
 }
 
 var (
-	ROOT_TEMPLATE = template.Must(template.New("").Parse(`
+	TEMPLATE = template.Must(template.New("").Parse(`
 		<head>
 			{{range .}}
 			<meta name="go-import" content="{{.Alias}} {{.RepoType}} {{.RepoURL}}" />
 			{{end}}
-		</head>`))
-
-	SINGLE_TEMPLATE = template.Must(template.New("").Parse(`
-		<head>
-			<meta name="go-import" content="{{.Alias}} {{.RepoType}} {{.RepoURL}}" />
 		</head>`))
 )

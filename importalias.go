@@ -12,11 +12,13 @@ import (
 
 var (
 	options = struct {
-		MongoDB       *url.URL     `goptions:"-m, --mongodb, description='MongoDB to connect to'"`
-		ListenAddress *net.TCPAddr `goptions:"-l, --listen, description='Address to listen on'"`
-		Hostname      string       `goptions:"-n, --hostname, obligatory, description='Hostname to serve app on'"`
-		StaticDir     string       `goptions:"--static-dir, description='Path to the static content directory'"`
-		goptions.Help `goptions:"-h, --help, description='Show this help'"`
+		MongoDB        *url.URL     `goptions:"-m, --mongodb, description='MongoDB to connect to'"`
+		ListenAddress  *net.TCPAddr `goptions:"-l, --listen, description='Address to listen on'"`
+		Hostname       string       `goptions:"-n, --hostname, obligatory, description='Hostname to serve app on'"`
+		StaticDir      string       `goptions:"--static-dir, description='Path to the static content directory'"`
+		GithubClientID string       `goptions:"--github-clientid, obligatory, description='Client ID of the GitHub App'"`
+		GithubSecret   string       `goptions:"--github-secret, obligatory, description='Secret of the GitHub App'"`
+		goptions.Help  `goptions:"-h, --help, description='Show this help'"`
 	}{ // Default values
 		MongoDB:       URLMust(url.Parse("mongodb://localhost")),
 		ListenAddress: TCPAddrMust(net.ResolveTCPAddr("tcp4", "localhost:8080")),
@@ -34,18 +36,15 @@ func main() {
 		log.Fatalf("Could not connect to %s: %s", options.MongoDB, err)
 	}
 	defer session.Close()
-
 	db := session.DB("") // Use database specified in URL
-	mainrouter := mux.NewRouter()
 
+	mainrouter := mux.NewRouter()
 	approuter := mainrouter.Host(options.Hostname).Subrouter()
+	mainrouter.PathPrefix("/").HandlerFunc(foreignHostname)
+	approuter.PathPrefix("/").Handler(http.FileServer(http.Dir(options.StaticDir)))
 
 	apirouter := approuter.PathPrefix("/api").Subrouter()
 	api1router := apirouter.PathPrefix("/v1").Subrouter()
-
-	approuter.PathPrefix("/").Handler(http.FileServer(http.Dir(options.StaticDir)))
-
-	mainrouter.PathPrefix("/").HandlerFunc(foreignHostname)
 
 	_, _ = db, api1router
 	log.Printf("Running webserver...")
