@@ -104,3 +104,22 @@ func GoogleExtractor(c *http.Client) (string, error) {
 	}
 	return user.Email, err
 }
+
+func FacebookExtractor(c *http.Client) (string, error) {
+	r, err := c.Get("https://graph.facebook.com/me")
+	if err != nil {
+		return "", err
+	}
+
+	user := struct {
+		Id string `json:"id"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		return "", err
+	}
+	if user.Id == "" {
+		err = fmt.Errorf("Invalid user id")
+	}
+	return user.Id, err
+}

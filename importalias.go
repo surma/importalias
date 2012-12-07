@@ -18,15 +18,17 @@ import (
 
 var (
 	options = struct {
-		MongoDB        *url.URL     `goptions:"-m, --mongodb, description='MongoDB to connect to'"`
-		ListenAddress  *net.TCPAddr `goptions:"-l, --listen, description='Address to listen on'"`
-		Hostname       string       `goptions:"-n, --hostname, obligatory, description='Hostname to serve app on'"`
-		StaticDir      string       `goptions:"--static-dir, description='Path to the static content directory'"`
-		GitHubClientID string       `goptions:"--github-clientid, description='Client ID of the GitHub App'"`
-		GitHubSecret   string       `goptions:"--github-secret, description='Secret of the GitHub App'"`
-		GoogleClientID string       `goptions:"--google-clientid, description='Client ID of the Google App'"`
-		GoogleSecret   string       `goptions:"--google-secret, description='Secret of the Google App'"`
-		goptions.Help  `goptions:"-h, --help, description='Show this help'"`
+		MongoDB          *url.URL      `goptions:"-m, --mongodb, description='MongoDB to connect to'"`
+		ListenAddress    *net.TCPAddr  `goptions:"-l, --listen, description='Address to listen on'"`
+		Hostname         string        `goptions:"-n, --hostname, obligatory, description='Hostname to serve app on'"`
+		StaticDir        string        `goptions:"--static-dir, description='Path to the static content directory'"`
+		GitHubClientID   string        `goptions:"--github-clientid, description='Client ID of the GitHub App'"`
+		GitHubSecret     string        `goptions:"--github-secret, description='Secret of the GitHub App'"`
+		GoogleClientID   string        `goptions:"--google-clientid, description='Client ID of the Google App'"`
+		GoogleSecret     string        `goptions:"--google-secret, description='Secret of the Google App'"`
+		FacebookClientID string        `goptions:"--facebook-clientid, description='Client ID of the Facebook App'"`
+		FacebookSecret   string        `goptions:"--facebook-secret, description='Secret of the Facebook App'"`
+		_                goptions.Help `goptions:"-h, --help, description='Show this help'"`
 	}{ // Default values
 		MongoDB:       URLMust(url.Parse("mongodb://localhost")),
 		ListenAddress: TCPAddrMust(net.ResolveTCPAddr("tcp4", "localhost:8080")),
@@ -88,6 +90,18 @@ func setupAuthApps(approuter *mux.Router) {
 			TokenURL:     "https://accounts.google.com/o/oauth2/token",
 			RedirectURL:  "http://" + path.Join(options.Hostname, "/auth/google/callback"),
 		}, ExtractorFunc(GoogleExtractor))))
+	}
+	if len(options.FacebookClientID) > 0 && len(options.FacebookSecret) > 0 {
+		log.Printf("Enabling Facebook auth with ClientID %s", options.FacebookClientID)
+		approuter.PathPrefix("/auth/facebook").
+			Handler(http.StripPrefix("/auth/facebook", NewOAuthAuthenticator(&oauth.Config{
+			ClientId:     options.FacebookClientID,
+			ClientSecret: options.FacebookSecret,
+			Scope:        "",
+			AuthURL:      "https://www.facebook.com/dialog/oauth",
+			TokenURL:     "https://graph.facebook.com/oauth/access_token",
+			RedirectURL:  "http://" + path.Join(options.Hostname, "/auth/facebook/callback"),
+		}, ExtractorFunc(FacebookExtractor))))
 	}
 }
 
