@@ -6,7 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/surma-dump/goauth2/oauth"
+
+	"code.google.com/p/goauth2/oauth"
 )
 
 type Authenticator interface {

@@ -9,8 +9,10 @@ import (
 	"path"
 
 	"github.com/gorilla/mux"
-	"github.com/surma-dump/goauth2/oauth"
 	"github.com/voxelbrain/goptions"
+
+	"code.google.com/p/goauth2/oauth"
+
 	"labix.org/v2/mgo"
 )
 
@@ -37,6 +39,7 @@ func init() {
 }
 
 func main() {
+	log.Printf("Connecting to mongodb on %s...", options.MongoDB)
 	session, err := mgo.Dial(options.MongoDB.String())
 	if err != nil {
 		log.Fatalf("Could not connect to %s: %s", options.MongoDB, err)
