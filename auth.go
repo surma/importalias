@@ -65,61 +65,30 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 	fmt.Fprintf(w, "ID: %s", uid)
 }
 
-func GitHubExtractor(c *http.Client) (string, error) {
-	r, err := c.Get("https://api.github.com/user")
-	if err != nil {
-		return "", err
-	}
+func NewJSONExtractor(url string, field string) Extractor {
+	return ExtractorFunc(func(c *http.Client) (string, error) {
+		r, err := c.Get(url)
+		if err != nil {
+			return "", err
+		}
 
-	user := struct {
-		Id int `json:"id"`
-	}{
-		Id: -1,
-	}
-	err = json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		return "", err
-	}
-	if user.Id == -1 {
-		err = fmt.Errorf("Invalid user id")
-	}
-	return fmt.Sprintf("%d", user.Id), err
-}
-
-func GoogleExtractor(c *http.Client) (string, error) {
-	r, err := c.Get("https://www.googleapis.com/oauth2/v1/userinfo")
-	if err != nil {
-		return "", err
-	}
-
-	user := struct {
-		Email string `json:"email"`
-	}{}
-	err = json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		return "", err
-	}
-	if user.Email == "" {
-		err = fmt.Errorf("Invalid user id")
-	}
-	return user.Email, err
-}
-
-func FacebookExtractor(c *http.Client) (string, error) {
-	r, err := c.Get("https://graph.facebook.com/me")
-	if err != nil {
-		return "", err
-	}
-
-	user := struct {
-		Id string `json:"id"`
-	}{}
-	err = json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		return "", err
-	}
-	if user.Id == "" {
-		err = fmt.Errorf("Invalid user id")
-	}
-	return user.Id, err
+		var data interface{}
+		err = json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			return "", err
+		}
+		switch x := data.(type) {
+		case map[string]interface{}:
+			data = x[field]
+		default:
+			return "", fmt.Errorf("Unhandled JSON type")
+		}
+		switch x := data.(type) {
+		case float64:
+			return fmt.Sprintf("%.0f", data), nil
+		case string:
+			return x, nil
+		}
+		return "", fmt.Errorf("Unsupported id type")
+	})
 }

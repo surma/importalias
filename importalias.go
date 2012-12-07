@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
-	"path"
+	"os"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/voxelbrain/goptions"
@@ -18,17 +20,13 @@ import (
 
 var (
 	options = struct {
-		MongoDB          *url.URL      `goptions:"-m, --mongodb, description='MongoDB to connect to'"`
-		ListenAddress    *net.TCPAddr  `goptions:"-l, --listen, description='Address to listen on'"`
-		Hostname         string        `goptions:"-n, --hostname, obligatory, description='Hostname to serve app on'"`
-		StaticDir        string        `goptions:"--static-dir, description='Path to the static content directory'"`
-		GitHubClientID   string        `goptions:"--github-clientid, description='Client ID of the GitHub App'"`
-		GitHubSecret     string        `goptions:"--github-secret, description='Secret of the GitHub App'"`
-		GoogleClientID   string        `goptions:"--google-clientid, description='Client ID of the Google App'"`
-		GoogleSecret     string        `goptions:"--google-secret, description='Secret of the Google App'"`
-		FacebookClientID string        `goptions:"--facebook-clientid, description='Client ID of the Facebook App'"`
-		FacebookSecret   string        `goptions:"--facebook-secret, description='Secret of the Facebook App'"`
-		_                goptions.Help `goptions:"-h, --help, description='Show this help'"`
+		MongoDB       *url.URL      `goptions:"-m, --mongodb, description='MongoDB to connect to'"`
+		ListenAddress *net.TCPAddr  `goptions:"-l, --listen, description='Address to listen on'"`
+		Hostname      string        `goptions:"-n, --hostname, obligatory, description='Hostname to serve app on'"`
+		StaticDir     string        `goptions:"--static-dir, description='Path to the static content directory'"`
+		AuthKeys      []string      `goptions:"--auth-key, description='Add key to an authenticator (format: <authentication provider>:<clientid>:<secret>)'"`
+		AuthConfig    *os.File      `goptions:"--auth-config, description='Config file for auth app'"`
+		Help          goptions.Help `goptions:"-h, --help, description='Show this help'"`
 	}{ // Default values
 		MongoDB:       URLMust(url.Parse("mongodb://localhost")),
 		ListenAddress: TCPAddrMust(net.ResolveTCPAddr("tcp4", "localhost:8080")),
@@ -53,7 +51,7 @@ func main() {
 	approuter := mainrouter.Host(options.Hostname).Subrouter()
 	api1router := approuter.PathPrefix("/api/v1").Subrouter().StrictSlash(true)
 
-	setupAuthApps(approuter)
+	setupAuthApps(approuter.PathPrefix("/auth").Subrouter())
 
 	api1router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "/api/v1")
@@ -67,41 +65,70 @@ func main() {
 		http.ListenAndServe(options.ListenAddress.String(), mainrouter))
 }
 
-func setupAuthApps(approuter *mux.Router) {
-	if len(options.GitHubClientID) > 0 && len(options.GitHubSecret) > 0 {
-		log.Printf("Enabling GitHub auth with ClientID %s", options.GitHubClientID)
-		approuter.PathPrefix("/auth/github").
-			Handler(http.StripPrefix("/auth/github", NewOAuthAuthenticator(&oauth.Config{
-			ClientId:     options.GitHubClientID,
-			ClientSecret: options.GitHubSecret,
-			AuthURL:      "https://github.com/login/oauth/authorize",
-			TokenURL:     "https://github.com/login/oauth/access_token",
-			RedirectURL:  "http://" + path.Join(options.Hostname, "/auth/github/callback"),
-		}, ExtractorFunc(GitHubExtractor))))
+type AuthConfig struct {
+	Type      string `json:"type"`
+	ClientID  string `json:"client_id"`
+	Secret    string `json:"secret"`
+	AuthURL   string `json:"auth_url"`
+	TokenURL  string `json:"token_url"`
+	Scope     string `json:"scope"`
+	Extractor struct {
+		Type  string `json:"type"`
+		URL   string `json:"url"`
+		Field string `json:"field"`
+	} `json:"extractor"`
+}
+
+func setupAuthApps(authrouter *mux.Router) {
+	defer options.AuthConfig.Close()
+	authconfigs := map[string]*AuthConfig{}
+
+	err := json.NewDecoder(options.AuthConfig).Decode(&authconfigs)
+	if err != nil {
+		log.Fatalf("Could not decode auth config: %s", err)
 	}
-	if len(options.GoogleClientID) > 0 && len(options.GoogleSecret) > 0 {
-		log.Printf("Enabling Google auth with ClientID %s", options.GoogleClientID)
-		approuter.PathPrefix("/auth/google").
-			Handler(http.StripPrefix("/auth/google", NewOAuthAuthenticator(&oauth.Config{
-			ClientId:     options.GoogleClientID,
-			ClientSecret: options.GoogleSecret,
-			Scope:        "https://www.googleapis.com/auth/userinfo.email",
-			AuthURL:      "https://accounts.google.com/o/oauth2/auth",
-			TokenURL:     "https://accounts.google.com/o/oauth2/token",
-			RedirectURL:  "http://" + path.Join(options.Hostname, "/auth/google/callback"),
-		}, ExtractorFunc(GoogleExtractor))))
+
+	for _, key := range options.AuthKeys {
+		keyparts := strings.Split(key, ":")
+		if len(keyparts) < 3 {
+			log.Printf("Invalid auth key \"%s\" encountered, skipping", key)
+			continue
+		}
+		if authconfig, ok := authconfigs[keyparts[0]]; !ok {
+			log.Printf("Unknown authentication provider \"%s\", skipping", keyparts[0])
+		} else {
+			authconfig.ClientID = keyparts[1]
+			authconfig.Secret = keyparts[2]
+		}
 	}
-	if len(options.FacebookClientID) > 0 && len(options.FacebookSecret) > 0 {
-		log.Printf("Enabling Facebook auth with ClientID %s", options.FacebookClientID)
-		approuter.PathPrefix("/auth/facebook").
-			Handler(http.StripPrefix("/auth/facebook", NewOAuthAuthenticator(&oauth.Config{
-			ClientId:     options.FacebookClientID,
-			ClientSecret: options.FacebookSecret,
-			Scope:        "",
-			AuthURL:      "https://www.facebook.com/dialog/oauth",
-			TokenURL:     "https://graph.facebook.com/oauth/access_token",
-			RedirectURL:  "http://" + path.Join(options.Hostname, "/auth/facebook/callback"),
-		}, ExtractorFunc(FacebookExtractor))))
+
+	for name, authconfig := range authconfigs {
+		var auth Authenticator
+		var ex Extractor
+		prefix, _ := authrouter.Path("/" + name).URL()
+		switch authconfig.Extractor.Type {
+		case "json":
+			ex = NewJSONExtractor(authconfig.Extractor.URL, authconfig.Extractor.Field)
+		default:
+			log.Printf("Unknown extractor \"%s\", skipping", authconfig.Extractor.Type)
+			continue
+		}
+		switch authconfig.Type {
+		case "oauth":
+			log.Printf("Enabling %s OAuth on %s with ClientID %s", name, prefix.String(), authconfig.ClientID)
+			auth = NewOAuthAuthenticator(&oauth.Config{
+				ClientId:     authconfig.ClientID,
+				ClientSecret: authconfig.Secret,
+				AuthURL:      authconfig.AuthURL,
+				TokenURL:     authconfig.TokenURL,
+				Scope:        authconfig.Scope,
+				RedirectURL:  prefix.String() + "/callback",
+			}, ex)
+		default:
+			log.Printf("Unknown authenticator \"%s\", skipping", authconfig.Type)
+			continue
+		}
+		authrouter.PathPrefix("/" + name).Handler(http.StripPrefix(prefix.Path, auth))
 	}
 }
 
