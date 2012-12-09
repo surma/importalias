@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gorilla/context"
+	"github.com/gorilla/sessions"
+	"github.com/surma-dump/mux"
 
 	"code.google.com/p/goauth2/oauth"
 )
@@ -36,6 +38,7 @@ func NewOAuthAuthenticator(c *oauth.Config, e Extractor) *OAuthAuthenticator {
 		extractor: e,
 	}
 	a.Router = mux.NewRouter()
+	a.Router.KeepContext = true
 	a.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		a.authHandler(w, r)
 	})
@@ -62,7 +65,6 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 		http.Error(w, fmt.Sprintf("Could not get user id: %s", err), http.StatusServiceUnavailable)
 		return
 	}
-	fmt.Fprintf(w, "ID: %s", uid)
 }
 
 func NewJSONExtractor(url string, field string) Extractor {
@@ -91,4 +93,30 @@ func NewJSONExtractor(url string, field string) Extractor {
 		}
 		return "", fmt.Errorf("Unsupported id type")
 	})
+}
+
+type contextKey int
+
+var (
+	sessionKey contextKey = 0
+)
+
+func NewSessionOpener(s sessions.Store) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, err := s.Get(r, "uid")
+		if err != nil {
+			session, err = s.New(r, "uid")
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Could not create session: %s", err), http.StatusInternalServerError)
+			}
+		}
+		context.Set(r, sessionKey, session)
+	})
+}
+
+func SessionSaver(w http.ResponseWriter, r *http.Request) {
+	err := context.Get(r, sessionKey).(*sessions.Session).Save(r, w)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Could not save session: %s", err), http.StatusInternalServerError)
+	}
 }

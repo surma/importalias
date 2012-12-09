@@ -10,7 +10,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
+	"github.com/surma-dump/mux"
 	"github.com/voxelbrain/goptions"
 
 	"code.google.com/p/goauth2/oauth"
@@ -26,6 +27,7 @@ var (
 		StaticDir     string        `goptions:"--static-dir, description='Path to the static content directory'"`
 		AuthKeys      []string      `goptions:"--auth-key, description='Add key to an authenticator (format: <authentication provider>:<clientid>:<secret>)'"`
 		AuthConfig    *os.File      `goptions:"--auth-config, description='Config file for auth app'"`
+		SessionStore  *SessionStore `goptions:"--cookie-key, obligatory, description='Encryption key for cookies'"`
 		Help          goptions.Help `goptions:"-h, --help, description='Show this help'"`
 	}{ // Default values
 		MongoDB:       URLMust(url.Parse("mongodb://localhost")),
@@ -128,7 +130,20 @@ func setupAuthApps(authrouter *mux.Router) {
 			log.Printf("Unknown authenticator \"%s\", skipping", authconfig.Type)
 			continue
 		}
-		authrouter.PathPrefix("/" + name).Handler(http.StripPrefix(prefix.Path, auth))
+		authrouter.PathPrefix("/" + name).Handler(
+			HandlerList{
+				NewSessionOpener(options.SessionStore),
+				http.StripPrefix(prefix.Path, auth),
+				http.HandlerFunc(SessionSaver),
+			})
+	}
+}
+
+type HandlerList []http.Handler
+
+func (hl HandlerList) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	for _, h := range hl {
+		h.ServeHTTP(w, r)
 	}
 }
 
@@ -144,4 +159,16 @@ func URLMust(u *url.URL, err error) *url.URL {
 		panic(err)
 	}
 	return u
+}
+
+type SessionStore struct {
+	sessions.Store
+}
+
+func (s *SessionStore) MarshalGoption(key string) error {
+	if len([]byte(key)) != 32 {
+		return fmt.Errorf("Cookie key needs to be 32 byte")
+	}
+	s.Store = sessions.NewCookieStore([]byte(key))
+	return nil
 }
