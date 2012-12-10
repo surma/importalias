@@ -1,16 +1,23 @@
 package main
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
+	"github.com/surma-dump/gouuid"
 	"github.com/surma-dump/mux"
 
 	"code.google.com/p/goauth2/oauth"
 )
+
+func init() {
+	gob.Register(gouuid.New())
+}
 
 type Authenticator interface {
 	http.Handler
@@ -27,13 +34,16 @@ func (e ExtractorFunc) Extract(c *http.Client) (string, error) {
 }
 
 type OAuthAuthenticator struct {
+	authname  string
 	config    *oauth.Config
 	extractor Extractor
 	*mux.Router
+	usermgr UserManager
 }
 
-func NewOAuthAuthenticator(c *oauth.Config, e Extractor) *OAuthAuthenticator {
+func NewOAuthAuthenticator(name string, c *oauth.Config, e Extractor, um UserManager) *OAuthAuthenticator {
 	a := &OAuthAuthenticator{
+		usermgr:   um,
 		config:    c,
 		extractor: e,
 	}
@@ -56,16 +66,48 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 	transport := (&oauth.Transport{Config: a.config})
 	_, err := transport.Exchange(r.FormValue("code"))
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Could not get access token: %s", err), http.StatusServiceUnavailable)
+		log.Printf("%s: Could not get access token: %s", a.authname, err)
+		http.Error(w, "Could not get access token", http.StatusServiceUnavailable)
 		return
 	}
 
-	uid, err := a.extractor.Extract(transport.Client())
+	id, err := a.extractor.Extract(transport.Client())
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Could not get user id: %s", err), http.StatusServiceUnavailable)
+		log.Printf("%s: Could not get user id: %s", a.authname, err)
+		http.Error(w, "Could not get user id", http.StatusServiceUnavailable)
 		return
 	}
-	_ = uid
+
+	session := context.Get(r, "session").(*sessions.Session)
+	apikey := session.Values["apikey"].(*gouuid.UUID)
+	// Already authenticated, add authenticator
+	if apikey != nil {
+		err := a.usermgr.AddAuthenticator(apikey, a.authname, id)
+		if err != nil {
+			log.Printf("Creating user failed: %s", err)
+			http.Error(w, "Could not create user", http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
+	user, err := a.usermgr.FindByAuthenticator(a.authname, id)
+	if err != nil && err != ErrNotFound {
+		log.Printf("Could not query user database: %s", err)
+		http.Error(w, "Could not query user database", http.StatusInternalServerError)
+		return
+	} else if err == ErrNotFound {
+		// New user
+		err = a.usermgr.New(a.authname, id)
+	} else {
+		// Login
+		session.Values["apikey"] = user.APIKey
+	}
+	if err != nil {
+		log.Printf("Error creating user: %s", err)
+		http.Error(w, "Error creating user", http.StatusInternalServerError)
+		return
+	}
 }
 
 func NewJSONExtractor(url string, field string) Extractor {
@@ -98,7 +140,7 @@ func NewJSONExtractor(url string, field string) Extractor {
 
 func SessionOpener(s sessions.Store, ttl int) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := s.Get(r, "uid")
+		session, err := s.Get(r, "apikey")
 		if err != nil {
 			session.Values = make(map[interface{}]interface{})
 		}

@@ -13,6 +13,7 @@ import (
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
+
 	"github.com/surma-dump/mux"
 	"github.com/voxelbrain/goptions"
 
@@ -50,13 +51,14 @@ func main() {
 	}
 	defer session.Close()
 	db := session.DB("") // Use database specified in URL
+	usermgr := NewMongoUserManager(db.C("users"))
 
 	mainrouter := mux.NewRouter()
 	mainrouter.KeepContext = true
 	approuter := mainrouter.Host(options.Hostname).Subrouter()
 	api1router := approuter.PathPrefix("/api/v1").Subrouter().StrictSlash(true)
 
-	setupAuthApps(approuter.PathPrefix("/auth").Subrouter())
+	setupAuthApps(approuter.PathPrefix("/auth").Subrouter(), usermgr)
 
 	api1router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "/api/v1")
@@ -84,7 +86,7 @@ type AuthConfig struct {
 	} `json:"extractor"`
 }
 
-func setupAuthApps(authrouter *mux.Router) {
+func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 	defer options.AuthConfig.Close()
 	authconfigs := map[string]*AuthConfig{}
 
@@ -121,23 +123,23 @@ func setupAuthApps(authrouter *mux.Router) {
 		switch authconfig.Type {
 		case "oauth":
 			log.Printf("Enabling %s OAuth on %s with ClientID %s", name, prefix.String(), authconfig.ClientID)
-			auth = NewOAuthAuthenticator(&oauth.Config{
+			auth = NewOAuthAuthenticator(name, &oauth.Config{
 				ClientId:     authconfig.ClientID,
 				ClientSecret: authconfig.Secret,
 				AuthURL:      authconfig.AuthURL,
 				TokenURL:     authconfig.TokenURL,
 				Scope:        authconfig.Scope,
 				RedirectURL:  prefix.String() + "/callback",
-			}, ex)
+			}, ex, usermgr)
 		default:
 			log.Printf("Unknown authenticator \"%s\", skipping", authconfig.Type)
 			continue
 		}
 		authrouter.PathPrefix("/" + name).Handler(
 			context.ClearHandler(HandlerList{
-				SessionOpener(options.SessionStore, int(options.SessionTTL/time.Second)),
+				SilentHandler(SessionOpener(options.SessionStore, int(options.SessionTTL/time.Second))),
 				http.StripPrefix(prefix.Path, auth),
-				SessionSaver(),
+				SilentHandler(SessionSaver()),
 			}))
 	}
 }

@@ -9,30 +9,34 @@ import (
 
 func TestHandlerList_Order(t *testing.T) {
 	h := HandlerList{
-		http.HandlerFunc(handlerA),
-		http.HandlerFunc(handlerB),
-		http.HandlerFunc(handlerC),
+		SilentHandler(http.HandlerFunc(handlerA)),
+		SilentHandler(http.HandlerFunc(handlerB)),
+		SilentHandler(http.HandlerFunc(handlerC)),
 	}
 
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, nil)
-	if !reflect.DeepEqual(rr.HeaderMap["Handler"], []string{"a", "b", "c"}) {
-		t.Fatalf("Header list is incompete or out of order: %#v", rr.HeaderMap["Handler"])
+	expected := []string{"a", "b", "c"}
+	got := rr.HeaderMap["Handler"]
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
 	}
 }
 
 func TestHandlerList_Fail(t *testing.T) {
 	h := HandlerList{
-		http.HandlerFunc(handlerA),
-		http.HandlerFunc(handlerB),
-		http.HandlerFunc(failHandler),
-		http.HandlerFunc(handlerC),
+		SilentHandler(http.HandlerFunc(handlerA)),
+		SilentHandler(http.HandlerFunc(handlerB)),
+		SilentHandler(http.HandlerFunc(failHandler)),
+		SilentHandler(http.HandlerFunc(handlerC)),
 	}
 
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, nil)
-	if !reflect.DeepEqual(rr.HeaderMap["Handler"], []string{"a", "b"}) {
-		t.Fatalf("Header list is incompete or out of order: %#v", rr.HeaderMap["Handler"])
+	expected := []string{"a", "b"}
+	got := rr.HeaderMap["Handler"]
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("Header list wrong. Expected %#v, got %#v", expected, got)
 	}
 }
 
