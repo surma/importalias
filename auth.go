@@ -65,6 +65,7 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 		http.Error(w, fmt.Sprintf("Could not get user id: %s", err), http.StatusServiceUnavailable)
 		return
 	}
+	_ = uid
 }
 
 func NewJSONExtractor(url string, field string) Extractor {
@@ -95,28 +96,22 @@ func NewJSONExtractor(url string, field string) Extractor {
 	})
 }
 
-type contextKey int
-
-var (
-	sessionKey contextKey = 0
-)
-
-func NewSessionOpener(s sessions.Store) http.Handler {
+func SessionOpener(s sessions.Store, ttl int) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := s.Get(r, "uid")
 		if err != nil {
-			session, err = s.New(r, "uid")
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Could not create session: %s", err), http.StatusInternalServerError)
-			}
+			session.Values = make(map[interface{}]interface{})
 		}
-		context.Set(r, sessionKey, session)
+		session.Options.MaxAge = ttl
+		context.Set(r, "session", session)
 	})
 }
 
-func SessionSaver(w http.ResponseWriter, r *http.Request) {
-	err := context.Get(r, sessionKey).(*sessions.Session).Save(r, w)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Could not save session: %s", err), http.StatusInternalServerError)
-	}
+func SessionSaver() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := context.Get(r, "session").(*sessions.Session).Save(r, w)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Could not save session: %s", err), http.StatusInternalServerError)
+		}
+	})
 }

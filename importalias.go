@@ -9,7 +9,9 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
 	"github.com/surma-dump/mux"
 	"github.com/voxelbrain/goptions"
@@ -28,19 +30,19 @@ var (
 		AuthKeys      []string      `goptions:"--auth-key, description='Add key to an authenticator (format: <authentication provider>:<clientid>:<secret>)'"`
 		AuthConfig    *os.File      `goptions:"--auth-config, description='Config file for auth app'"`
 		SessionStore  *SessionStore `goptions:"--cookie-key, obligatory, description='Encryption key for cookies'"`
+		SessionTTL    time.Duration `goptions:"--session-ttl, description='Duration of a session cookie'"`
 		Help          goptions.Help `goptions:"-h, --help, description='Show this help'"`
 	}{ // Default values
 		MongoDB:       URLMust(url.Parse("mongodb://localhost")),
 		ListenAddress: TCPAddrMust(net.ResolveTCPAddr("tcp4", "localhost:8080")),
 		StaticDir:     "./static",
+		SessionTTL:    30 * time.Minute,
 	}
 )
 
-func init() {
-	goptions.ParseAndFail(&options)
-}
-
 func main() {
+	goptions.ParseAndFail(&options)
+
 	log.Printf("Connecting to mongodb on %s...", options.MongoDB)
 	session, err := mgo.Dial(options.MongoDB.String())
 	if err != nil {
@@ -50,6 +52,7 @@ func main() {
 	db := session.DB("") // Use database specified in URL
 
 	mainrouter := mux.NewRouter()
+	mainrouter.KeepContext = true
 	approuter := mainrouter.Host(options.Hostname).Subrouter()
 	api1router := approuter.PathPrefix("/api/v1").Subrouter().StrictSlash(true)
 
@@ -131,19 +134,11 @@ func setupAuthApps(authrouter *mux.Router) {
 			continue
 		}
 		authrouter.PathPrefix("/" + name).Handler(
-			HandlerList{
-				NewSessionOpener(options.SessionStore),
+			context.ClearHandler(HandlerList{
+				SessionOpener(options.SessionStore, int(options.SessionTTL/time.Second)),
 				http.StripPrefix(prefix.Path, auth),
-				http.HandlerFunc(SessionSaver),
-			})
-	}
-}
-
-type HandlerList []http.Handler
-
-func (hl HandlerList) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	for _, h := range hl {
-		h.ServeHTTP(w, r)
+				SessionSaver(),
+			}))
 	}
 }
 
@@ -169,6 +164,8 @@ func (s *SessionStore) MarshalGoption(key string) error {
 	if len([]byte(key)) != 32 {
 		return fmt.Errorf("Cookie key needs to be 32 byte")
 	}
-	s.Store = sessions.NewCookieStore([]byte(key))
+	cs := sessions.NewCookieStore([]byte(key))
+	cs.Options.MaxAge = int(options.SessionTTL / time.Second)
+	s.Store = cs
 	return nil
 }
