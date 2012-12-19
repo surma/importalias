@@ -35,8 +35,8 @@ func TestCreate(t *testing.T) {
 	c := setup()
 	defer teardown(c)
 
-	mgr := NewMongoUserManager(c)
-	err := mgr.New("gotest", TOKEN)
+	mgr := &MongoUserManager{c}
+	user, err := mgr.New("gotest", TOKEN)
 	if err != nil {
 		t.Fatalf("NewUser failed: %s", err)
 	}
@@ -46,14 +46,13 @@ func TestCreate(t *testing.T) {
 		t.Fatalf("Unexpected number of results: %d", count)
 	}
 
-	user := &User{}
-	err = qry.One(user)
+	user2 := &User{}
+	err = qry.One(user2)
 	if err != nil {
 		t.Fatalf("Could not get user: %s", err)
 	}
-	if !(user.APIKey.String() != "" &&
-		user.Authenticators["gotest"] == TOKEN) {
-		t.Fatalf("Unexpected user data: %#v", user)
+	if !reflect.DeepEqual(user, user2) {
+		t.Fatalf("Unexpected user data: %#v vs %#v", user, user2)
 	}
 }
 
@@ -61,7 +60,7 @@ func TestFindUser(t *testing.T) {
 	c := setup()
 	defer teardown(c)
 
-	mgr := NewMongoUserManager(c)
+	mgr := &MongoUserManager{c}
 	uuid := gouuid.New()
 	err := c.Insert(
 		&User{
@@ -95,29 +94,22 @@ func TestAddAuthenticator(t *testing.T) {
 	c := setup()
 	defer teardown(c)
 
-	mgr := NewMongoUserManager(c)
-	uuid := gouuid.New()
-	err := c.Insert(
-		&User{
-			APIKey: &uuid,
-			Authenticators: map[string]string{
-				"gotest": TOKEN,
-			},
-		})
+	mgr := &MongoUserManager{c}
+	user, err := mgr.New("gotest", TOKEN)
 	if err != nil {
 		panic(err)
 	}
 
-	err = mgr.AddAuthenticator(&uuid, "gotest2", TOKEN)
+	err = mgr.AddAuthenticator(user.UID, "gotest2", TOKEN)
 	if err != nil {
 		t.Fatalf("Could not add second authenticator: %s", err)
 	}
 
-	user, err := mgr.FindByAuthenticator("gotest2", TOKEN)
+	user2, err := mgr.FindByAuthenticator("gotest2", TOKEN)
 	if err != nil {
 		t.Fatalf("Could not get user: %s", err)
 	}
-	if !reflect.DeepEqual(user.APIKey, &uuid) {
+	if !reflect.DeepEqual(user.UID, user2.UID) {
 		t.Fatalf("Unexpected APIKey for user")
 	}
 }

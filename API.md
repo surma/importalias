@@ -3,46 +3,46 @@
 ### v1
 Root: `/api/v1`
 
-#### Alias object
+#### Authentication
+Authentication is done via basic auth which has to be your [API-Key](http://notthereyet.com).
+
+#### /domains
+To be able to create an alias under a certain domain, domains have to be claimed.
+
+##### POST /domains/<domain>
+Claim a domain
+Returns: 204 on success
+
+##### GET /domains/
+Returns: 200 and a list of all claimed domains
+
+
+##### DELETE /domains/<domain>
+Delete a domain (and all its aliases) from the list, effictively makeing it reclaimable
+Returns: 204 on success
+
+##### GET /domains/<domain>
+Returns: 200 and all aliases defined for a domain on success
+
+##### PUT /domains/<domain>
+Add an alias under the given domain.
 An alias object holds all the relevant metadata for an entry.
-
-The Go definition is:
-
-```Go
-type Alias struct {
-	// URL of the repository to link to
-	RepoURL    string `json:"repo_url"`
-	// VCS of the repository ("git", "hg" or "bzr")
-	RepoType   string `json:"repo_type"`
-	// URL to forward to if the URL is being accessed
-	// by something else than the go tool.
-	ForwardURL string `josn:"forward_url"`
-	Alias      string `json:"alias"`
-}
-```
-
-Accordingly, an JSON example would be:
+Payload:
 
 ```JSON
+POST /domains/go.surmair.de
+
 {
 	"repo_url": "https://github.com/surma/stacksignal",
 	"repo_type": "git",
 	"forward_url": "http://surmas-nonexistend-homepage.de/about_stacksignal",
-	"alias": "go.surmair.de/stacksignal",
+	"alias": "/stacksignal",
 }
 ```
 
-#### Authentication
-Authentication is done via basic auth which has to be your [API-Key](http://notthereyet.com).
+Returns: 201 and the domain object with an additional `id` field
 
-#### GET /
-Lists all current aliases in use. Returns an array of alias objects.
+##### Delete /domains/<domain>/<id>
+Delete a single alias
+Return: 204 on success
 
-#### GET /<alias>
-Returns a single alias object.
-
-#### PUT /<alias>
-Add or update a new alias to your account. The data must be a single alias object.
-
-#### DELETE /<alias>
-Delete an alias from your account.

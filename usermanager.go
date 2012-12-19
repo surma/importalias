@@ -16,21 +16,18 @@ var (
 type UserManager interface {
 	FindByAuthenticator(authenticator, id string) (*User, error)
 	FindByAPIKey(apikey *gouuid.UUID) (*User, error)
-	New(authenticator, id string) error
-	AddAuthenticator(apikey *gouuid.UUID, authenticator, id string) error
+	FindByUID(uid *gouuid.UUID) (*User, error)
+	New(authenticator, id string) (*User, error)
+	AddAuthenticator(uid *gouuid.UUID, authenticator, id string) error
 }
 
 type MongoUserManager struct {
-	collection *mgo.Collection
-}
-
-func NewMongoUserManager(c *mgo.Collection) *MongoUserManager {
-	return &MongoUserManager{c}
+	Collection *mgo.Collection
 }
 
 func (mum *MongoUserManager) FindByAuthenticator(authenticator, id string) (*User, error) {
 	user := &User{}
-	qry := mum.collection.Find(bson.M{
+	qry := mum.Collection.Find(bson.M{
 		"authenticators." + authenticator: id,
 	})
 	if count, _ := qry.Count(); count != 1 {
@@ -42,7 +39,7 @@ func (mum *MongoUserManager) FindByAuthenticator(authenticator, id string) (*Use
 
 func (mum *MongoUserManager) FindByAPIKey(apikey *gouuid.UUID) (*User, error) {
 	user := &User{}
-	qry := mum.collection.Find(bson.M{
+	qry := mum.Collection.Find(bson.M{
 		"apikey": apikey,
 	})
 	if count, _ := qry.Count(); count != 1 {
@@ -52,26 +49,40 @@ func (mum *MongoUserManager) FindByAPIKey(apikey *gouuid.UUID) (*User, error) {
 	return user, err
 }
 
-func (mum *MongoUserManager) New(authenticator, id string) error {
-	uuid := gouuid.New()
-	return mum.UpdateUser(&User{
-		APIKey: &uuid,
+func (mum *MongoUserManager) FindByUID(uid *gouuid.UUID) (*User, error) {
+	user := &User{}
+	qry := mum.Collection.Find(bson.M{
+		"uid": uid,
+	})
+	if count, _ := qry.Count(); count != 1 {
+		return nil, ErrNotFound
+	}
+	err := qry.One(user)
+	return user, err
+}
+
+func (mum *MongoUserManager) New(authenticator, id string) (*User, error) {
+	uid, apikey := gouuid.New(), gouuid.New()
+	user := &User{
+		UID:    &uid,
+		APIKey: &apikey,
 		Authenticators: map[string]string{
 			authenticator: id,
 		},
-	})
+	}
+	return user, mum.UpdateUser(user)
 }
 
 func (mum *MongoUserManager) UpdateUser(u *User) error {
-	_, err := mum.collection.Upsert(bson.M{
-		"apikey": u.APIKey,
+	_, err := mum.Collection.Upsert(bson.M{
+		"uid": u.UID,
 	}, u)
 	return err
 }
 
-func (mum *MongoUserManager) AddAuthenticator(apikey *gouuid.UUID, authenticator, id string) error {
-	return mum.collection.Update(bson.M{
-		"apikey": apikey,
+func (mum *MongoUserManager) AddAuthenticator(uid *gouuid.UUID, authenticator, id string) error {
+	return mum.Collection.Update(bson.M{
+		"uid": uid,
 	}, bson.M{
 		"$set": bson.M{
 			"authenticators": bson.M{

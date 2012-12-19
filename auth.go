@@ -79,10 +79,10 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 	}
 
 	session := context.Get(r, "session").(*sessions.Session)
-	apikey := session.Values["apikey"].(*gouuid.UUID)
+	uid := session.Values["uid"].(*gouuid.UUID)
 	// Already authenticated, add authenticator
-	if apikey != nil {
-		err := a.usermgr.AddAuthenticator(apikey, a.authname, id)
+	if uid != nil {
+		err := a.usermgr.AddAuthenticator(uid, a.authname, id)
 		if err != nil {
 			log.Printf("Creating user failed: %s", err)
 			http.Error(w, "Could not create user", http.StatusInternalServerError)
@@ -98,16 +98,15 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 		return
 	} else if err == ErrNotFound {
 		// New user
-		err = a.usermgr.New(a.authname, id)
-	} else {
-		// Login
-		session.Values["apikey"] = user.APIKey
+		user, err = a.usermgr.New(a.authname, id)
+		if err != nil {
+			log.Printf("Error creating user: %s", err)
+			http.Error(w, "Error creating user", http.StatusInternalServerError)
+			return
+		}
 	}
-	if err != nil {
-		log.Printf("Error creating user: %s", err)
-		http.Error(w, "Error creating user", http.StatusInternalServerError)
-		return
-	}
+	// Login
+	session.Values["uid"] = user.UID
 }
 
 func NewJSONExtractor(url string, field string) Extractor {
@@ -140,7 +139,7 @@ func NewJSONExtractor(url string, field string) Extractor {
 
 func SessionOpener(s sessions.Store, ttl int) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := s.Get(r, "apikey")
+		session, err := s.Get(r, "uid")
 		if err != nil {
 			session.Values = make(map[interface{}]interface{})
 		}

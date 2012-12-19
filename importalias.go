@@ -51,7 +51,7 @@ func main() {
 	}
 	defer session.Close()
 	db := session.DB("") // Use database specified in URL
-	usermgr := NewMongoUserManager(db.C("users"))
+	usermgr := &MongoUserManager{db.C("users")}
 
 	mainrouter := mux.NewRouter()
 	mainrouter.KeepContext = true

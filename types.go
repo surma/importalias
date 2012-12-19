@@ -4,10 +4,17 @@ import (
 	"github.com/surma-dump/gouuid"
 )
 
+// Deprecated to be removed
 type Aliases map[string]Alias
+
+type Domain struct {
+	Name    string           `json:"name"`
+	Owners  []string         `bson:"owners"`
+	Aliases map[string]Alias `json:"aliases"`
+}
+
 type Alias struct {
-	// User ids which can access this domain
-	Owners []string
+	ID *gouuid.UUID `json:"id"`
 	// URL of the repository to link to
 	RepoURL string `json:"repo_url"`
 	// VCS of the repository ("git", "hg" or "bzr")
@@ -19,6 +26,7 @@ type Alias struct {
 }
 
 type User struct {
+	UID            *gouuid.UUID      `json:"uid"`
 	APIKey         *gouuid.UUID      `json:"apikey"`
 	Authenticators map[string]string `json:"authenticators"`
 }
