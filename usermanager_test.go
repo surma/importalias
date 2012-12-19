@@ -14,7 +14,7 @@ const (
 	TOKEN = "s3cr3t"
 )
 
-func setup() *mgo.Collection {
+func umgr_setup() *mgo.Collection {
 	session, err := mgo.Dial("mongodb://localhost/importalias-test")
 	if err != nil {
 		panic(err)
@@ -26,16 +26,28 @@ func setup() *mgo.Collection {
 	return db.C("user")
 }
 
-func teardown(c *mgo.Collection) {
+func umgr_teardown(c *mgo.Collection, t *testing.T) {
+	if t.Failed() {
+		var v interface{}
+		it := c.Find(bson.M{}).Iter()
+		t.Logf("Datbase documents:")
+		for it.Next(&v) {
+			t.Logf("%#v", v)
+			v = nil
+		}
+		if it.Err() != nil {
+			t.Logf("Error: %s", it.Err())
+		}
+	}
 	defer c.Database.Session.Close()
 	c.Database.DropDatabase()
 }
 
 func TestCreate(t *testing.T) {
-	c := setup()
-	defer teardown(c)
+	c := umgr_setup()
+	defer umgr_teardown(c, t)
 
-	mgr := &MongoUserManager{c}
+	mgr := UserManager(&MongoUserManager{c})
 	user, err := mgr.New("gotest", TOKEN)
 	if err != nil {
 		t.Fatalf("NewUser failed: %s", err)
@@ -52,15 +64,15 @@ func TestCreate(t *testing.T) {
 		t.Fatalf("Could not get user: %s", err)
 	}
 	if !reflect.DeepEqual(user, user2) {
-		t.Fatalf("Unexpected user data: %#v vs %#v", user, user2)
+		t.Fatalf("Unexpected user data: Got %#v, expected %#v", user2, user)
 	}
 }
 
 func TestFindUser(t *testing.T) {
-	c := setup()
-	defer teardown(c)
+	c := umgr_setup()
+	defer umgr_teardown(c, t)
 
-	mgr := &MongoUserManager{c}
+	mgr := UserManager(&MongoUserManager{c})
 	uuid := gouuid.New()
 	err := c.Insert(
 		&User{
@@ -91,10 +103,10 @@ func TestFindUser(t *testing.T) {
 }
 
 func TestAddAuthenticator(t *testing.T) {
-	c := setup()
-	defer teardown(c)
+	c := umgr_setup()
+	defer umgr_teardown(c, t)
 
-	mgr := &MongoUserManager{c}
+	mgr := UserManager(&MongoUserManager{c})
 	user, err := mgr.New("gotest", TOKEN)
 	if err != nil {
 		panic(err)

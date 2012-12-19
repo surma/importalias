@@ -8,9 +8,9 @@ import (
 type Aliases map[string]Alias
 
 type Domain struct {
-	Name    string           `json:"name"`
-	Owners  []string         `bson:"owners"`
-	Aliases map[string]Alias `json:"aliases"`
+	Name    string         `json:"name"`
+	Owners  []*gouuid.UUID `bson:"owners"`
+	Aliases []*Alias       `json:"aliases"`
 }
 
 type Alias struct {
