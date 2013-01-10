@@ -43,6 +43,7 @@ type OAuthAuthenticator struct {
 
 func NewOAuthAuthenticator(name string, c *oauth.Config, e Extractor, um UserManager) *OAuthAuthenticator {
 	a := &OAuthAuthenticator{
+		authname:  name,
 		usermgr:   um,
 		config:    c,
 		extractor: e,
@@ -79,10 +80,10 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 	}
 
 	session := context.Get(r, "session").(*sessions.Session)
-	uid := session.Values["uid"].(*gouuid.UUID)
+	uid, ok := session.Values["uid"]
 	// Already authenticated, add authenticator
-	if uid != nil {
-		err := a.usermgr.AddAuthenticator(uid, a.authname, id)
+	if ok && uid != nil {
+		err := a.usermgr.AddAuthenticator(uid.(*gouuid.UUID), a.authname, id)
 		if err != nil {
 			log.Printf("Creating user failed: %s", err)
 			http.Error(w, "Could not create user", http.StatusInternalServerError)

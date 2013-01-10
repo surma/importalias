@@ -88,7 +88,7 @@ type AuthConfig struct {
 
 func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 	defer options.AuthConfig.Close()
-	authconfigs := map[string]*AuthConfig{}
+	authconfigs, enabled_authconfigs := map[string]*AuthConfig{}, map[string]*AuthConfig{}
 
 	err := json.NewDecoder(options.AuthConfig).Decode(&authconfigs)
 	if err != nil {
@@ -101,15 +101,17 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 			log.Printf("Invalid auth key \"%s\" encountered, skipping", key)
 			continue
 		}
-		if authconfig, ok := authconfigs[keyparts[0]]; !ok {
+		name, clientid, secret := keyparts[0], keyparts[1], keyparts[2]
+		if authconfig, ok := authconfigs[name]; !ok {
 			log.Printf("Unknown authentication provider \"%s\", skipping", keyparts[0])
 		} else {
-			authconfig.ClientID = keyparts[1]
-			authconfig.Secret = keyparts[2]
+			enabled_authconfigs[name] = authconfig
+			enabled_authconfigs[name].ClientID = clientid
+			enabled_authconfigs[name].Secret = secret
 		}
 	}
 
-	for name, authconfig := range authconfigs {
+	for name, authconfig := range enabled_authconfigs {
 		var auth Authenticator
 		var ex Extractor
 		prefix, _ := authrouter.Path("/" + name).URL()
