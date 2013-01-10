@@ -1,18 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/gorilla/context"
-	"github.com/gorilla/sessions"
 
 	"github.com/surma-dump/mux"
 	"github.com/voxelbrain/goptions"
@@ -29,7 +26,7 @@ var (
 		Hostname      string        `goptions:"-n, --hostname, obligatory, description='Hostname to serve app on'"`
 		StaticDir     string        `goptions:"--static-dir, description='Path to the static content directory'"`
 		AuthKeys      []string      `goptions:"--auth-key, description='Add key to an authenticator (format: <authentication provider>:<clientid>:<secret>)'"`
-		AuthConfig    *os.File      `goptions:"--auth-config, description='Config file for auth app'"`
+		AuthConfigs   *AuthMap      `goptions:"--auth-config, description='Config file for auth apps'"`
 		SessionStore  *SessionStore `goptions:"--cookie-key, obligatory, description='Encryption key for cookies'"`
 		SessionTTL    time.Duration `goptions:"--session-ttl, description='Duration of a session cookie'"`
 		Help          goptions.Help `goptions:"-h, --help, description='Show this help'"`
@@ -87,13 +84,7 @@ type AuthConfig struct {
 }
 
 func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
-	defer options.AuthConfig.Close()
-	authconfigs, enabled_authconfigs := map[string]*AuthConfig{}, map[string]*AuthConfig{}
-
-	err := json.NewDecoder(options.AuthConfig).Decode(&authconfigs)
-	if err != nil {
-		log.Fatalf("Could not decode auth config: %s", err)
-	}
+	authconfigs := map[string]*AuthConfig{}
 
 	for _, key := range options.AuthKeys {
 		keyparts := strings.Split(key, ":")
@@ -102,16 +93,16 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 			continue
 		}
 		name, clientid, secret := keyparts[0], keyparts[1], keyparts[2]
-		if authconfig, ok := authconfigs[name]; !ok {
+		if authconfig, ok := (*options.AuthConfigs)[name]; !ok {
 			log.Printf("Unknown authentication provider \"%s\", skipping", keyparts[0])
 		} else {
-			enabled_authconfigs[name] = authconfig
-			enabled_authconfigs[name].ClientID = clientid
-			enabled_authconfigs[name].Secret = secret
+			authconfigs[name] = authconfig
+			authconfigs[name].ClientID = clientid
+			authconfigs[name].Secret = secret
 		}
 	}
 
-	for name, authconfig := range enabled_authconfigs {
+	for name, authconfig := range authconfigs {
 		var auth Authenticator
 		var ex Extractor
 		prefix, _ := authrouter.Path("/" + name).URL()
@@ -158,18 +149,4 @@ func URLMust(u *url.URL, err error) *url.URL {
 		panic(err)
 	}
 	return u
-}
-
-type SessionStore struct {
-	sessions.Store
-}
-
-func (s *SessionStore) MarshalGoption(key string) error {
-	if len([]byte(key)) != 32 {
-		return fmt.Errorf("Cookie key needs to be 32 byte")
-	}
-	cs := sessions.NewCookieStore([]byte(key))
-	cs.Options.MaxAge = int(options.SessionTTL / time.Second)
-	s.Store = cs
-	return nil
 }
