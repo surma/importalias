@@ -26,7 +26,7 @@ var (
 		Hostname      string        `goptions:"-n, --hostname, obligatory, description='Hostname to serve app on'"`
 		StaticDir     string        `goptions:"--static-dir, description='Path to the static content directory'"`
 		AuthKeys      []string      `goptions:"--auth-key, description='Add key to an authenticator (format: <authentication provider>:<clientid>:<secret>)'"`
-		AuthConfigs   *AuthList      `goptions:"--auth-config, description='Config file for auth apps'"`
+		AuthConfigs   *AuthList     `goptions:"--auth-config, description='Config file for auth apps'"`
 		SessionStore  *SessionStore `goptions:"--cookie-key, obligatory, description='Encryption key for cookies'"`
 		SessionTTL    time.Duration `goptions:"--session-ttl, description='Duration of a session cookie'"`
 		Help          goptions.Help `goptions:"-h, --help, description='Show this help'"`

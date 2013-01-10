@@ -71,9 +71,7 @@ func (mum *MongoUserManager) AddAuthenticator(uid *gouuid.UUID, authenticator, i
 		"uid": uid,
 	}, bson.M{
 		"$set": bson.M{
-			"authenticators": bson.M{
-				authenticator: id,
-			},
+			"authenticators." + authenticator: id,
 		},
 	})
 }

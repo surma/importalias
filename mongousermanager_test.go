@@ -21,8 +21,7 @@ func umgr_setup() *mgo.Collection {
 	}
 
 	db := session.DB("")
-	db.DropDatabase()
-	db = session.DB("")
+	db.C("user").DropCollection()
 	return db.C("user")
 }
 
@@ -40,7 +39,7 @@ func umgr_teardown(c *mgo.Collection, t *testing.T) {
 		}
 	}
 	defer c.Database.Session.Close()
-	c.Database.DropDatabase()
+	c.DropCollection()
 }
 
 func TestCreate(t *testing.T) {
@@ -117,11 +116,19 @@ func TestAddAuthenticator(t *testing.T) {
 		t.Fatalf("Could not add second authenticator: %s", err)
 	}
 
-	user2, err := mgr.FindByAuthenticator("gotest2", TOKEN)
+	user2, err := mgr.FindByAuthenticator("gotest", TOKEN)
 	if err != nil {
 		t.Fatalf("Could not get user: %s", err)
 	}
 	if !reflect.DeepEqual(user.UID, user2.UID) {
-		t.Fatalf("Unexpected APIKey for user")
+		t.Fatalf("Could not find user with old authenticator")
+	}
+
+	user2, err = mgr.FindByAuthenticator("gotest2", TOKEN)
+	if err != nil {
+		t.Fatalf("Could not get user: %s", err)
+	}
+	if !reflect.DeepEqual(user.UID, user2.UID) {
+		t.Fatalf("Could not find user with new authenticator")
 	}
 }
