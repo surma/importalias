@@ -23,9 +23,9 @@ func (s *SessionStore) MarshalGoption(key string) error {
 	return nil
 }
 
-type AuthMap map[string]*AuthConfig
+type AuthList map[string]*AuthConfig
 
-func (a *AuthMap) MarshalGoption(file string) error {
+func (a *AuthList) MarshalGoption(file string) error {
 	f, err := os.Open(file)
 	if err != nil {
 		return fmt.Errorf("Could not open file: %s", err)

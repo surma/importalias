@@ -16,7 +16,11 @@ import (
 )
 
 func init() {
-	gob.Register(gouuid.New())
+	// Register *gouuid.UUID as a type with gob
+	// as gob is being used bei gorilla’s cookie session store which
+	// is used by us to save the user’s uuid.
+	uuid := gouuid.New()
+	gob.Register(&uuid)
 }
 
 type Authenticator interface {
@@ -81,7 +85,7 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 
 	session := context.Get(r, "session").(*sessions.Session)
 	uid, ok := session.Values["uid"]
-	// Already authenticated, add authenticator
+	// Already authenticated, add new authenticator
 	if ok && uid != nil {
 		err := a.usermgr.AddAuthenticator(uid.(*gouuid.UUID), a.authname, id)
 		if err != nil {

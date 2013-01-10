@@ -26,7 +26,7 @@ var (
 		Hostname      string        `goptions:"-n, --hostname, obligatory, description='Hostname to serve app on'"`
 		StaticDir     string        `goptions:"--static-dir, description='Path to the static content directory'"`
 		AuthKeys      []string      `goptions:"--auth-key, description='Add key to an authenticator (format: <authentication provider>:<clientid>:<secret>)'"`
-		AuthConfigs   *AuthMap      `goptions:"--auth-config, description='Config file for auth apps'"`
+		AuthConfigs   *AuthList      `goptions:"--auth-config, description='Config file for auth apps'"`
 		SessionStore  *SessionStore `goptions:"--cookie-key, obligatory, description='Encryption key for cookies'"`
 		SessionTTL    time.Duration `goptions:"--session-ttl, description='Duration of a session cookie'"`
 		Help          goptions.Help `goptions:"-h, --help, description='Show this help'"`
@@ -63,7 +63,6 @@ func main() {
 
 	approuter.PathPrefix("/").Handler(http.FileServer(http.Dir(options.StaticDir)))
 	mainrouter.PathPrefix("/").HandlerFunc(foreignHostname)
-	_ = db
 	log.Printf("Running webserver...")
 	log.Fatalf("Failed to run webserver: %s",
 		http.ListenAndServe(options.ListenAddress.String(), mainrouter))
@@ -84,7 +83,7 @@ type AuthConfig struct {
 }
 
 func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
-	authconfigs := map[string]*AuthConfig{}
+	enabled := make(AuthList)
 
 	for _, key := range options.AuthKeys {
 		keyparts := strings.Split(key, ":")
@@ -96,13 +95,13 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 		if authconfig, ok := (*options.AuthConfigs)[name]; !ok {
 			log.Printf("Unknown authentication provider \"%s\", skipping", keyparts[0])
 		} else {
-			authconfigs[name] = authconfig
-			authconfigs[name].ClientID = clientid
-			authconfigs[name].Secret = secret
+			enabled[name] = authconfig
+			enabled[name].ClientID = clientid
+			enabled[name].Secret = secret
 		}
 	}
 
-	for name, authconfig := range authconfigs {
+	for name, authconfig := range enabled {
 		var auth Authenticator
 		var ex Extractor
 		prefix, _ := authrouter.Path("/" + name).URL()
