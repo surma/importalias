@@ -68,19 +68,6 @@ func main() {
 		http.ListenAndServe(options.ListenAddress.String(), mainrouter))
 }
 
-type AuthConfig struct {
-	Type      string `json:"type"`
-	ClientID  string `json:"client_id"`
-	Secret    string `json:"secret"`
-	AuthURL   string `json:"auth_url"`
-	TokenURL  string `json:"token_url"`
-	Scope     string `json:"scope"`
-	Extractor struct {
-		Type  string `json:"type"`
-		URL   string `json:"url"`
-		Field string `json:"field"`
-	} `json:"extractor"`
-}
 
 func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 	enabled := make(AuthList)

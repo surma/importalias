@@ -23,6 +23,20 @@ func (s *SessionStore) MarshalGoption(key string) error {
 	return nil
 }
 
+type AuthConfig struct {
+	Type      string `json:"type"`
+	ClientID  string `json:"client_id"`
+	Secret    string `json:"secret"`
+	AuthURL   string `json:"auth_url"`
+	TokenURL  string `json:"token_url"`
+	Scope     string `json:"scope"`
+	Extractor struct {
+		Type  string `json:"type"`
+		URL   string `json:"url"`
+		Field string `json:"field"`
+	} `json:"extractor"`
+}
+
 type AuthList map[string]*AuthConfig
 
 func (a *AuthList) MarshalGoption(file string) error {
