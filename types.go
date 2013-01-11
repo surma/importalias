@@ -9,7 +9,7 @@ type Aliases map[string]Alias
 
 type Domain struct {
 	Name    string         `json:"name"`
-	Owners  []*gouuid.UUID `bson:"owners"`
+	Owners  []*gouuid.UUID `bson:"owners" json:"-"`
 	Aliases []*Alias       `json:"aliases"`
 }
 
@@ -28,5 +28,5 @@ type Alias struct {
 type User struct {
 	UID            *gouuid.UUID      `json:"uid"`
 	APIKey         *gouuid.UUID      `json:"apikey"`
-	Authenticators map[string]string `json:"authenticators"`
+	Authenticators map[string]string `bson:"authenticators" json:"-"`
 }

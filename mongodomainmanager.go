@@ -43,9 +43,6 @@ func (mdm *MongoDomainManager) DomainsByOwner(uid *gouuid.UUID) ([]*Domain, erro
 	qry := mdm.Collection.Find(bson.M{
 		"owners": uid,
 	})
-	if count, _ := qry.Count(); count < 1 {
-		return nil, ErrNotFound
-	}
 	// FIXME: This can crash everything if there are *a lot* of
 	// domains. Paging?
 	err := qry.All(&domains)

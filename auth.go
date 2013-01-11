@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
@@ -83,11 +85,10 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	session := context.Get(r, "session").(*sessions.Session)
-	uid, ok := session.Values["uid"]
+	uid, ok := context.Get(r, "uid").(*gouuid.UUID)
 	// Already authenticated, add new authenticator
 	if ok && uid != nil {
-		err := a.usermgr.AddAuthenticator(uid.(*gouuid.UUID), a.authname, id)
+		err := a.usermgr.AddAuthenticator(uid, a.authname, id)
 		if err != nil {
 			log.Printf("Creating user failed: %s", err)
 			http.Error(w, "Could not create user", http.StatusInternalServerError)
@@ -111,7 +112,7 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 		}
 	}
 	// Login
-	session.Values["uid"] = user.UID
+	context.Get(r, "session").(*sessions.Session).Values["uid"] = user.UID
 }
 
 func NewJSONExtractor(url string, field string) Extractor {
@@ -144,9 +145,12 @@ func NewJSONExtractor(url string, field string) Extractor {
 
 func SessionOpener(s sessions.Store, ttl int) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := s.Get(r, "uid")
+		session, err := s.Get(r, "session")
 		if err != nil {
 			session.Values = make(map[interface{}]interface{})
+		}
+		if uid, ok := session.Values["uid"]; ok {
+			context.Set(r, "uid", uid)
 		}
 		session.Options.MaxAge = ttl
 		context.Set(r, "session", session)
@@ -159,5 +163,52 @@ func SessionSaver() http.Handler {
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Could not save session: %s", err), http.StatusInternalServerError)
 		}
+	})
+}
+
+func ValidateUID(umgr UserManager) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		uid, ok := context.Get(r, "uid").(*gouuid.UUID)
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+		_, err := umgr.FindByUID(uid)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+	})
+}
+
+func BasicAuth(umgr UserManager) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authhdr := r.Header.Get("Authorization")
+		authhdrs := strings.Fields(authhdr)
+		if len(authhdrs) != 2 || authhdrs[0] != "Basic" {
+			http.NotFound(w, r)
+			return
+		}
+		credential, err := base64.URLEncoding.DecodeString(authhdrs[1])
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		credentials := strings.Split(string(credential), ":")
+		if len(credentials) != 2 {
+			http.NotFound(w, r)
+			return
+		}
+		apikey, err := gouuid.ParseString(credentials[0])
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		user, err := umgr.FindByAPIKey(&apikey)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		context.Set(r, "uid", user.UID)
 	})
 }

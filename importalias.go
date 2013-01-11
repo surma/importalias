@@ -56,7 +56,7 @@ func main() {
 	apirouter := approuter.PathPrefix("/api").Subrouter()
 
 	setupAuthApps(authrouter, usermgr)
-	setupApiApps(apirouter, domainmgr)
+	setupApiApps(apirouter, domainmgr, usermgr)
 
 	approuter.PathPrefix("/").Handler(http.FileServer(http.Dir(options.StaticDir)))
 	mainrouter.PathPrefix("/").HandlerFunc(foreignHostname)
@@ -108,7 +108,15 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 	}
 }
 
-func setupApiApps(apirouter *mux.Router, domainmgr DomainManager) {
+func setupApiApps(apirouter *mux.Router, domainmgr DomainManager, usermgr UserManager) {
+	prefix, _ := apirouter.Path("/").URL()
+	apirouter.PathPrefix("/v1").Handler(
+		context.ClearHandler(HandlerList{
+			SilentHandler(SessionOpener(options.SessionStore, int(options.SessionTTL/time.Second))),
+			SilentHandler(BasicAuth(usermgr)),
+			SilentHandler(ValidateUID(usermgr)),
+			http.StripPrefix(prefix.Path+"v1", NewAPIv1(domainmgr, usermgr)),
+		}))
 }
 
 func TCPAddrMust(t *net.TCPAddr, err error) *net.TCPAddr {
