@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/sessions"
@@ -25,11 +26,10 @@ func (s *SessionStore) MarshalGoption(key string) error {
 
 type AuthConfig struct {
 	Type      string `json:"type"`
-	ClientID  string `json:"client_id"`
-	Secret    string `json:"secret"`
 	AuthURL   string `json:"auth_url"`
 	TokenURL  string `json:"token_url"`
 	Scope     string `json:"scope"`
+	AuthKey   *AuthKey
 	Extractor struct {
 		Type  string `json:"type"`
 		URL   string `json:"url"`
@@ -49,5 +49,23 @@ func (a *AuthList) MarshalGoption(file string) error {
 	if err != nil {
 		return fmt.Errorf("Could not decode file: %s", err)
 	}
+	return nil
+}
+
+type AuthKey struct {
+	Name     string
+	ClientID string
+	Secret   string
+}
+
+func (a *AuthKey) MarshalGoption(key string) error {
+	keyparts := strings.Split(key, ":")
+	if len(keyparts) < 3 {
+		return fmt.Errorf("Invalid auth key format \"%s\"", key)
+	}
+	name, clientid, secret := keyparts[0], keyparts[1], keyparts[2]
+	a.Name = name
+	a.ClientID = clientid
+	a.Secret = secret
 	return nil
 }

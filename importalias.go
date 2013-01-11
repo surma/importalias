@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/gorilla/context"
@@ -25,8 +23,8 @@ var (
 		ListenAddress *net.TCPAddr  `goptions:"-l, --listen, description='Address to listen on'"`
 		Hostname      string        `goptions:"-n, --hostname, obligatory, description='Hostname to serve app on'"`
 		StaticDir     string        `goptions:"--static-dir, description='Path to the static content directory'"`
-		AuthKeys      []string      `goptions:"--auth-key, description='Add key to an authenticator (format: <authentication provider>:<clientid>:<secret>)'"`
 		AuthConfigs   *AuthList     `goptions:"--auth-config, description='Config file for auth apps'"`
+		AuthKeys      []*AuthKey    `goptions:"--auth-key, description='Add key to an authenticator (format: <authentication provider>:<clientid>:<secret>)'"`
 		SessionStore  *SessionStore `goptions:"--cookie-key, obligatory, description='Encryption key for cookies'"`
 		SessionTTL    time.Duration `goptions:"--session-ttl, description='Duration of a session cookie'"`
 		Help          goptions.Help `goptions:"-h, --help, description='Show this help'"`
@@ -49,17 +47,16 @@ func main() {
 	defer session.Close()
 	db := session.DB("") // Use database specified in URL
 	usermgr := &MongoUserManager{db.C("users")}
+	domainmgr := &MongoDomainManager{db.C("domains")}
 
 	mainrouter := mux.NewRouter()
 	mainrouter.KeepContext = true
 	approuter := mainrouter.Host(options.Hostname).Subrouter()
-	api1router := approuter.PathPrefix("/api/v1").Subrouter().StrictSlash(true)
+	authrouter := approuter.PathPrefix("/auth").Subrouter()
+	apirouter := approuter.PathPrefix("/api").Subrouter()
 
-	setupAuthApps(approuter.PathPrefix("/auth").Subrouter(), usermgr)
-
-	api1router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "/api/v1")
-	})
+	setupAuthApps(authrouter, usermgr)
+	setupApiApps(apirouter, domainmgr)
 
 	approuter.PathPrefix("/").Handler(http.FileServer(http.Dir(options.StaticDir)))
 	mainrouter.PathPrefix("/").HandlerFunc(foreignHostname)
@@ -68,30 +65,18 @@ func main() {
 		http.ListenAndServe(options.ListenAddress.String(), mainrouter))
 }
 
-
 func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
-	enabled := make(AuthList)
-
-	for _, key := range options.AuthKeys {
-		keyparts := strings.Split(key, ":")
-		if len(keyparts) < 3 {
-			log.Printf("Invalid auth key \"%s\" encountered, skipping", key)
+	for _, authkey := range options.AuthKeys {
+		authconfig, ok := (*options.AuthConfigs)[authkey.Name]
+		if !ok {
+			log.Printf("Unknown authenticator \"%s\", skipping", authkey.Name)
 			continue
 		}
-		name, clientid, secret := keyparts[0], keyparts[1], keyparts[2]
-		if authconfig, ok := (*options.AuthConfigs)[name]; !ok {
-			log.Printf("Unknown authentication provider \"%s\", skipping", keyparts[0])
-		} else {
-			enabled[name] = authconfig
-			enabled[name].ClientID = clientid
-			enabled[name].Secret = secret
-		}
-	}
+		authconfig.AuthKey = authkey
 
-	for name, authconfig := range enabled {
 		var auth Authenticator
 		var ex Extractor
-		prefix, _ := authrouter.Path("/" + name).URL()
+		prefix, _ := authrouter.Path("/" + authkey.Name).URL()
 		switch authconfig.Extractor.Type {
 		case "json":
 			ex = NewJSONExtractor(authconfig.Extractor.URL, authconfig.Extractor.Field)
@@ -101,10 +86,10 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 		}
 		switch authconfig.Type {
 		case "oauth":
-			log.Printf("Enabling %s OAuth on %s with ClientID %s", name, prefix.String(), authconfig.ClientID)
-			auth = NewOAuthAuthenticator(name, &oauth.Config{
-				ClientId:     authconfig.ClientID,
-				ClientSecret: authconfig.Secret,
+			log.Printf("Enabling %s OAuth on %s with ClientID %s", authkey.Name, prefix.String(), authconfig.AuthKey.ClientID)
+			auth = NewOAuthAuthenticator(authkey.Name, &oauth.Config{
+				ClientId:     authconfig.AuthKey.ClientID,
+				ClientSecret: authconfig.AuthKey.Secret,
 				AuthURL:      authconfig.AuthURL,
 				TokenURL:     authconfig.TokenURL,
 				Scope:        authconfig.Scope,
@@ -114,13 +99,16 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 			log.Printf("Unknown authenticator \"%s\", skipping", authconfig.Type)
 			continue
 		}
-		authrouter.PathPrefix("/" + name).Handler(
+		authrouter.PathPrefix("/" + authkey.Name).Handler(
 			context.ClearHandler(HandlerList{
 				SilentHandler(SessionOpener(options.SessionStore, int(options.SessionTTL/time.Second))),
 				http.StripPrefix(prefix.Path, auth),
 				SilentHandler(SessionSaver()),
 			}))
 	}
+}
+
+func setupApiApps(apirouter *mux.Router, domainmgr DomainManager) {
 }
 
 func TCPAddrMust(t *net.TCPAddr, err error) *net.TCPAddr {
