@@ -184,6 +184,9 @@ func ValidateUID(umgr UserManager) http.Handler {
 func BasicAuth(umgr UserManager) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authhdr := r.Header.Get("Authorization")
+		if len(authhdr) == 0 {
+			return
+		}
 		authhdrs := strings.Fields(authhdr)
 		if len(authhdrs) != 2 || authhdrs[0] != "Basic" {
 			http.NotFound(w, r)
