@@ -72,7 +72,10 @@ func (api *APIv1) GetDomains(w http.ResponseWriter, r *http.Request) {
 func (api *APIv1) ClaimDomain(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	domain := dns.Fqdn("_importalias." + vars["domain"])
-	rr, err := RecursiveDNS(domain, dns.TypeTXT)
+	m := new(dns.Msg)
+	m.SetQuestion(domain, dns.TypeTXT)
+	c := new(dns.Client)
+	rr, _, err := c.Exchange(m, "8.8.8.8:53")
 	if err != nil {
 		log.Printf("Could not check domain’s TXT record: %s", err)
 		http.Error(w, "Could not check domain’s TXT record", http.StatusInternalServerError)
@@ -80,7 +83,7 @@ func (api *APIv1) ClaimDomain(w http.ResponseWriter, r *http.Request) {
 	}
 
 	uid := context.Get(r, "uid").(*gouuid.UUID)
-	if !containsValidTXTRecord(uid, rr) {
+	if !containsValidTXTRecord(uid, rr.Answer) {
 		http.Error(w, "Did not find your UID in domain’s TXT records", http.StatusUnauthorized)
 		return
 	}
