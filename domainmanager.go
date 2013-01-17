@@ -1,7 +1,13 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/surma-dump/gouuid"
+)
+
+var (
+	ErrAlreadyClaimed = fmt.Errorf("Domain already claimed")
 )
 
 type DomainManager interface {

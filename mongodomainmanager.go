@@ -15,8 +15,10 @@ type MongoDomainManager struct {
 
 func (mdm *MongoDomainManager) ClaimDomain(name string, uid *gouuid.UUID) error {
 	_, err := mdm.FindDomain(name)
-	if err != ErrNotFound {
-		return fmt.Errorf("Could not claim domain")
+	if err == nil {
+		return ErrAlreadyClaimed
+	} else if err != ErrNotFound {
+		return fmt.Errorf("Invalid domain query result")
 	}
 
 	return mdm.Collection.Insert(&Domain{

@@ -88,8 +88,16 @@ func (api *APIv1) ClaimDomain(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Claimed! (not really)")
-	return
+	err = api.domainmgr.ClaimDomain(vars["domain"], uid)
+	if err == ErrAlreadyClaimed {
+		http.Error(w, "Domain already claimed", http.StatusForbidden)
+		return
+	} else if err != nil {
+		log.Printf("Could not claim domain: %s", err)
+		http.Error(w, "Could not claim domain", http.StatusInternalServerError)
+		return
+	}
+	http.Error(w, "", http.StatusNoContent)
 }
 
 func containsValidTXTRecord(uid *gouuid.UUID, rr []dns.RR) bool {
