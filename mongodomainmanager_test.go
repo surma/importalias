@@ -255,8 +255,51 @@ func TestSetAlias(t *testing.T) {
 			Alias:      "alias2",
 		},
 	}
-	mgr.SetAlias("gotest.org", expected[0])
-	mgr.SetAlias("gotest.org", expected[1])
+	mgr.SetAlias("gotest.org", expected[0], &uid)
+	mgr.SetAlias("gotest.org", expected[1], &uid)
+
+	domain := Domain{}
+	c.Find(bson.M{}).One(&domain)
+	if !reflect.DeepEqual(domain.Aliases, expected) {
+		t.Fatalf("Unexpected domain data. Got %#v, expected %#v", domain.Aliases, expected)
+	}
+}
+
+func TestWrongSetAlias(t *testing.T) {
+	c := dmgr_setup()
+	defer dmgr_teardown(c, t)
+
+	mgr := DomainManager(&MongoDomainManager{c})
+	uid := gouuid.New()
+	other_uid := gouuid.New()
+	mgr.ClaimDomain("gotest.org", &uid)
+
+	expected := []*Alias{
+		&Alias{
+			RepoURL:    "repo1",
+			RepoType:   "git",
+			ForwardURL: "homepage1",
+			Alias:      "alias1",
+		},
+		&Alias{
+			RepoURL:    "repo2",
+			RepoType:   "git",
+			ForwardURL: "homepage2",
+			Alias:      "alias2",
+		},
+	}
+	mgr.SetAlias("gotest.org", expected[0], &uid)
+	mgr.SetAlias("gotest.org", expected[1], &uid)
+	err := mgr.SetAlias("gotest.org", &Alias{
+		RepoURL:    "repo2",
+		RepoType:   "git",
+		ForwardURL: "homepage2",
+		Alias:      "alias2",
+	}, &other_uid)
+
+	if err == nil {
+		t.Fatalf("Could set alias with wrong id")
+	}
 
 	domain := Domain{}
 	c.Find(bson.M{}).One(&domain)
@@ -287,8 +330,8 @@ func TestDeleteAlias(t *testing.T) {
 			Alias:      "alias2",
 		},
 	}
-	mgr.SetAlias("gotest.org", expected[0])
-	mgr.SetAlias("gotest.org", expected[1])
+	mgr.SetAlias("gotest.org", expected[0], &uid)
+	mgr.SetAlias("gotest.org", expected[1], &uid)
 
 	mgr.DeleteAlias(expected[1].ID)
 	expected = expected[0:1]
