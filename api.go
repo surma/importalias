@@ -48,6 +48,9 @@ func NewAPIv1(domainmgr DomainManager, usermgr UserManager) *APIv1 {
 	api.Router.Path("/domains/{domain}").Methods("POST").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		api.ClaimDomain(w, r)
 	})
+	api.Router.Path("/domains/{domain}").Methods("DELETE").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		api.DeleteDomain(w, r)
+	})
 
 	return api
 }
@@ -115,4 +118,15 @@ func containsValidTXTRecord(uid *gouuid.UUID, rr []dns.RR) bool {
 		}
 	}
 	return false
+}
+
+func (api *APIv1) DeleteDomain(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	uid := context.Get(r, "uid").(*gouuid.UUID)
+	err := api.domainmgr.DeleteDomain(vars["domain"], uid)
+	if err != nil {
+		http.Error(w, "Could not delete domain", http.StatusNotFound)
+		return
+	}
+	http.Error(w, "", http.StatusNoContent)
 }

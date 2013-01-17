@@ -40,6 +40,13 @@ func (mdm *MongoDomainManager) FindDomain(name string) (*Domain, error) {
 	return domain, err
 }
 
+func (mdm *MongoDomainManager) DeleteDomain(name string, uid *gouuid.UUID) error {
+	return mdm.Collection.Remove(bson.M{
+		"name":   name,
+		"owners": uid,
+	})
+}
+
 func (mdm *MongoDomainManager) DomainsByOwner(uid *gouuid.UUID) ([]*Domain, error) {
 	domains := []*Domain{}
 	qry := mdm.Collection.Find(bson.M{

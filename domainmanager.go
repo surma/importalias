@@ -13,6 +13,7 @@ var (
 type DomainManager interface {
 	ClaimDomain(domain string, uid *gouuid.UUID) error
 	FindDomain(domain string) (*Domain, error)
+	DeleteDomain(domain string, uid *gouuid.UUID) error
 	DomainsByOwner(uid *gouuid.UUID) ([]*Domain, error)
 	SetAlias(domain string, alias *Alias) error
 	DeleteAlias(aid *gouuid.UUID) error
