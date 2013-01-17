@@ -7,9 +7,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/gorilla/context"
-
-	"github.com/surma-dump/mux"
+	"github.com/gorilla/mux"
+	"github.com/surma-dump/context"
 	"github.com/voxelbrain/goptions"
 
 	"code.google.com/p/goauth2/oauth"
@@ -50,7 +49,6 @@ func main() {
 	domainmgr := &MongoDomainManager{db.C("domains")}
 
 	mainrouter := mux.NewRouter()
-	mainrouter.KeepContext = true
 	approuter := mainrouter.Host(options.Hostname).Subrouter()
 	authrouter := approuter.PathPrefix("/auth").Subrouter()
 	apirouter := approuter.PathPrefix("/api").Subrouter()

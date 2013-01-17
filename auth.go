@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/surma-dump/context"
 	"github.com/surma-dump/gouuid"
-	"github.com/surma-dump/mux"
 
 	"code.google.com/p/goauth2/oauth"
 )
@@ -55,7 +55,6 @@ func NewOAuthAuthenticator(name string, c *oauth.Config, e Extractor, um UserMan
 		extractor: e,
 	}
 	a.Router = mux.NewRouter()
-	a.Router.KeepContext = true
 	a.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		a.authHandler(w, r)
 	})

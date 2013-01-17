@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/surma-dump/context"
 	"github.com/surma-dump/gouuid"
-	"github.com/surma-dump/mux"
 
 	"github.com/miekg/dns"
 )
@@ -29,7 +29,6 @@ func NewAPIv1(domainmgr DomainManager, usermgr UserManager) *APIv1 {
 	}
 
 	api.Router = mux.NewRouter()
-	api.Router.KeepContext = true
 	api.Router.Path("/me").Methods("GET").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		uid := context.Get(r, "uid").(*gouuid.UUID)
 		user, err := usermgr.FindByUID(uid)
