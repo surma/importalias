@@ -15,6 +15,7 @@ type DomainManager interface {
 	FindDomain(domain string) (*Domain, error)
 	DeleteDomain(domain string, uid *gouuid.UUID) error
 	DomainsByOwner(uid *gouuid.UUID) ([]*Domain, error)
+	FindAlias(domain string, alias string) (*Alias, error)
 	SetAlias(domain string, alias *Alias, uid *gouuid.UUID) error
 	DeleteAlias(aid *gouuid.UUID) error
 }

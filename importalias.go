@@ -57,7 +57,7 @@ func main() {
 	setupApiApps(apirouter, domainmgr, usermgr)
 
 	approuter.PathPrefix("/").Handler(http.FileServer(http.Dir(options.StaticDir)))
-	mainrouter.PathPrefix("/").HandlerFunc(foreignHostname)
+	mainrouter.PathPrefix("/").Handler(&Metapage{domainmgr})
 	log.Printf("Running webserver...")
 	log.Fatalf("Failed to run webserver: %s",
 		http.ListenAndServe(options.ListenAddress.String(), mainrouter))

@@ -77,7 +77,7 @@ func (mdm *MongoDomainManager) SetAlias(name string, alias *Alias, uid *gouuid.U
 }
 
 func (mdm *MongoDomainManager) DeleteAlias(aid *gouuid.UUID) error {
-	_, err := mdm.Collection.Upsert(bson.M{
+	err := mdm.Collection.Update(bson.M{
 		"aliases.id": aid,
 	}, bson.M{
 		"$pull": bson.M{
@@ -87,4 +87,21 @@ func (mdm *MongoDomainManager) DeleteAlias(aid *gouuid.UUID) error {
 		},
 	})
 	return err
+}
+
+func (mdm *MongoDomainManager) FindAlias(domain string, alias string) (*Alias, error) {
+	d := &Domain{}
+	err := mdm.Collection.Find(bson.M{
+		"name": domain,
+	}).Select(bson.M{
+		"aliases": bson.M{
+			"$elemMatch": bson.M{
+				"alias": alias,
+			},
+		},
+	}).One(d)
+	if err != nil || len(d.Aliases) <= 0 {
+		return nil, ErrNotFound
+	}
+	return d.Aliases[0], nil
 }

@@ -342,3 +342,38 @@ func TestDeleteAlias(t *testing.T) {
 		t.Fatalf("Unexpected domain data. Got %#v, expected %#v", domain.Aliases, expected)
 	}
 }
+
+func TestFindAlias(t *testing.T) {
+	c := dmgr_setup()
+	defer dmgr_teardown(c, t)
+
+	mgr := DomainManager(&MongoDomainManager{c})
+	uid := gouuid.New()
+	mgr.ClaimDomain("gotest.org", &uid)
+
+	expected := []*Alias{
+		&Alias{
+			RepoURL:    "repo1",
+			RepoType:   "git",
+			ForwardURL: "homepage1",
+			Alias:      "alias1",
+		},
+		&Alias{
+			RepoURL:    "repo2",
+			RepoType:   "git",
+			ForwardURL: "homepage2",
+			Alias:      "alias2",
+		},
+	}
+	mgr.SetAlias("gotest.org", expected[0], &uid)
+	mgr.SetAlias("gotest.org", expected[1], &uid)
+
+	alias, err := mgr.FindAlias("gotest.org", "alias1")
+	if err != nil {
+		t.Fatalf("Could not find domain: %s", err)
+	}
+
+	if !reflect.DeepEqual(alias, expected[0]) {
+		t.Fatalf("Unexpected domain data. Got %#v, expected %#v", alias, expected)
+	}
+}

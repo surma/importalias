@@ -6,41 +6,27 @@ import (
 	"strings"
 )
 
-var (
-	knownHosts = map[string]Aliases{
-		"localhostalias.de": Aliases{
-			"/goptions": Alias{
-				RepoURL:    "https://github.com/surma/goptions",
-				ForwardURL: "https://github.com/surma/goptions",
-				RepoType:   "git",
-				Alias:      "localhostalias.de/goptions",
-			},
-			"/gocpio": Alias{
-				RepoURL:    "https://github.com/surma/gocpio",
-				ForwardURL: "https://github.com/surma/gocpio",
-				RepoType:   "git",
-				Alias:      "localhostalias.de/gocpio",
-			},
-		},
-	}
-)
+type Metapage struct {
+	domainmgr DomainManager
+}
 
-func foreignHostname(w http.ResponseWriter, r *http.Request) {
+func (m *Metapage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if idx := strings.Index(r.Host, ":"); idx != -1 {
 		r.Host = r.Host[:idx]
 	}
-	aliases, ok := knownHosts[r.Host]
-	if !ok {
-		http.Redirect(w, r, "http://"+options.Hostname+"/unknown", http.StatusMovedPermanently)
-		return
-	}
+
 	if r.URL.Path == "/" {
-		TEMPLATE.Execute(w, aliases)
+		domain, err := m.domainmgr.FindDomain(r.Host)
+		if err != nil {
+			http.Redirect(w, r, "http://"+options.Hostname+"/unknown", http.StatusMovedPermanently)
+			return
+		}
+		TEMPLATE.Execute(w, domain.Aliases)
 		return
 	}
 
-	alias, ok := aliases[r.URL.Path]
-	if !ok {
+	alias, err := m.domainmgr.FindAlias(r.Host, r.URL.Path)
+	if err != nil {
 		http.Redirect(w, r, "http://"+options.Hostname+"/unknown", http.StatusMovedPermanently)
 		return
 	}
@@ -49,7 +35,7 @@ func foreignHostname(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, alias.ForwardURL, http.StatusMovedPermanently)
 		return
 	}
-	TEMPLATE.Execute(w, []Alias{alias})
+	TEMPLATE.Execute(w, []*Alias{alias})
 }
 
 func isGoGetRequest(r *http.Request) bool {
