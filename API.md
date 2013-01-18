@@ -4,13 +4,19 @@
 Root: `/api/v1`
 
 #### Authentication
-Authentication is done via basic auth which has to be your [API-Key](http://notthereyet.com).
+Authentication is done via basic auth which has to be your
+[API-Key](http://notthereyet.com).
+
+#### /me
+##### GET /me
+Show your API-Key and your user ID
 
 #### /domains
-To be able to create an alias under a certain domain, domains have to be claimed.
-
 ##### POST /domains/<domain>
-Claim a domain
+Claim a domain. If this call succeedes, you can manage this domain’s
+aliases. The server will look for a TXT-Record on this domain’s DNS
+which has to be names `_importalias.<domain>` and has to contain
+your user ID.
 Returns: 204 on success
 
 ##### GET /domains/
@@ -18,19 +24,20 @@ Returns: 200 and a list of all claimed domains
 
 
 ##### DELETE /domains/<domain>
-Delete a domain (and all its aliases) from the list, effictively makeing it reclaimable
+Delete a domain (and all its aliases) from the list, effictively
+makeing it reclaimable.
 Returns: 204 on success
 
 ##### GET /domains/<domain>
 Returns: 200 and all aliases defined for a domain on success
 
 ##### PUT /domains/<domain>
-Add an alias under the given domain.
-An alias object holds all the relevant metadata for an entry.
+Add an alias under the given domain. An alias object holds all the
+relevant metadata for an entry.
 Payload:
 
 ```JSON
-POST /domains/go.surmair.de
+PUT /domains/go.surmair.de
 
 {
 	"repo_url": "https://github.com/surma/stacksignal",
@@ -42,7 +49,7 @@ POST /domains/go.surmair.de
 
 Returns: 201 and the domain object with an additional `id` field
 
-##### Delete /domains/<domain>/<id>
+##### DELETE /domains/<domain>/<id>
 Delete a single alias
 Return: 204 on success
 
