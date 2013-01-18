@@ -76,8 +76,9 @@ func (mdm *MongoDomainManager) SetAlias(name string, alias *Alias, uid *gouuid.U
 	return err
 }
 
-func (mdm *MongoDomainManager) DeleteAlias(aid *gouuid.UUID) error {
+func (mdm *MongoDomainManager) DeleteAlias(aid *gouuid.UUID, uid *gouuid.UUID) error {
 	err := mdm.Collection.Update(bson.M{
+		"owners":     uid,
 		"aliases.id": aid,
 	}, bson.M{
 		"$pull": bson.M{

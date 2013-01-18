@@ -333,7 +333,7 @@ func TestDeleteAlias(t *testing.T) {
 	mgr.SetAlias("gotest.org", expected[0], &uid)
 	mgr.SetAlias("gotest.org", expected[1], &uid)
 
-	mgr.DeleteAlias(expected[1].ID)
+	mgr.DeleteAlias(expected[1].ID, &uid)
 	expected = expected[0:1]
 
 	domain := Domain{}

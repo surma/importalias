@@ -47,11 +47,17 @@ func NewAPIv1(domainmgr DomainManager, usermgr UserManager) *APIv1 {
 	api.Router.Path("/domains/{domain}").Methods("POST").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		api.ClaimDomain(w, r)
 	})
+	api.Router.Path("/domains/{domain}").Methods("GET").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		api.ListAliases(w, r)
+	})
 	api.Router.Path("/domains/{domain}").Methods("DELETE").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		api.DeleteDomain(w, r)
 	})
-	api.Router.Path("/domains/{domain}/").Methods("PUT").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	api.Router.Path("/domains/{domain}").Methods("PUT").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		api.SetAlias(w, r)
+	})
+	api.Router.Path("/domains/{domain}/{aid}").Methods("DELETE").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		api.DeleteAlias(w, r)
 	})
 
 	return api
@@ -122,6 +128,30 @@ func containsValidTXTRecord(uid *gouuid.UUID, rr []dns.RR) bool {
 	return false
 }
 
+func (api *APIv1) DeleteDomain(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	uid := context.Get(r, "uid").(*gouuid.UUID)
+	err := api.domainmgr.DeleteDomain(vars["domain"], uid)
+	if err != nil {
+		http.Error(w, "Could not delete domain", http.StatusInternalServerError)
+		return
+	}
+	http.Error(w, "", http.StatusNoContent)
+}
+
+func (api *APIv1) ListAliases(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	uid := context.Get(r, "uid").(*gouuid.UUID)
+
+	domain, err := api.domainmgr.FindDomain(vars["domain"])
+	if err != nil || !domain.IsOwnedBy(uid) {
+		http.Error(w, "Could not find domain", http.StatusNotFound)
+		return
+	}
+	enc := json.NewEncoder(w)
+	enc.Encode(domain.Aliases)
+}
+
 func (api *APIv1) SetAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	uid := context.Get(r, "uid").(*gouuid.UUID)
@@ -142,12 +172,19 @@ func (api *APIv1) SetAlias(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "", http.StatusNoContent)
 }
 
-func (api *APIv1) DeleteDomain(w http.ResponseWriter, r *http.Request) {
+func (api *APIv1) DeleteAlias(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	uid := context.Get(r, "uid").(*gouuid.UUID)
-	err := api.domainmgr.DeleteDomain(vars["domain"], uid)
+
+	aid, err := gouuid.ParseString(vars["aid"])
 	if err != nil {
-		http.Error(w, "Could not delete domain", http.StatusInternalServerError)
+		http.Error(w, "Invalid id format", http.StatusNotFound)
+		return
+	}
+
+	err = api.domainmgr.DeleteAlias(&aid, uid)
+	if err != nil {
+		http.Error(w, "Could not delete alias", http.StatusNotFound)
 		return
 	}
 	http.Error(w, "", http.StatusNoContent)
