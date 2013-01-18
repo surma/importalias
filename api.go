@@ -169,7 +169,9 @@ func (api *APIv1) SetAlias(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not add alias", http.StatusNotFound)
 		return
 	}
-	http.Error(w, "", http.StatusNoContent)
+	w.WriteHeader(http.StatusCreated)
+	enc := json.NewEncoder(w)
+	enc.Encode(alias.ID)
 }
 
 func (api *APIv1) DeleteAlias(w http.ResponseWriter, r *http.Request) {
