@@ -64,6 +64,9 @@ func main() {
 }
 
 func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
+	authrouter.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`["google", "github"]`))
+	})
 	for _, authkey := range options.AuthKeys {
 		authconfig, ok := (*options.AuthConfigs)[authkey.Name]
 		if !ok {
@@ -99,9 +102,8 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 		}
 		authrouter.PathPrefix("/" + authkey.Name).Handler(
 			context.ClearHandler(HandlerList{
-				SilentHandler(SessionOpener(options.SessionStore, int(options.SessionTTL/time.Second))),
+				SilentHandler(SessionHandler(options.SessionStore, int(options.SessionTTL/time.Second))),
 				http.StripPrefix(prefix.Path, auth),
-				SilentHandler(SessionSaver()),
 			}))
 	}
 }
@@ -110,7 +112,7 @@ func setupApiApps(apirouter *mux.Router, domainmgr DomainManager, usermgr UserMa
 	prefix, _ := apirouter.Path("/").URL()
 	apirouter.PathPrefix("/v1").Handler(
 		context.ClearHandler(HandlerList{
-			SilentHandler(SessionOpener(options.SessionStore, int(options.SessionTTL/time.Second))),
+			SilentHandler(SessionHandler(options.SessionStore, int(options.SessionTTL/time.Second))),
 			SilentHandler(BasicAuth(usermgr)),
 			SilentHandler(ValidateUID(usermgr)),
 			http.StripPrefix(prefix.Path+"v1", NewAPIv1(domainmgr, usermgr)),
