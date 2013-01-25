@@ -16,19 +16,24 @@
         <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
         <script data-main="js/main" src="js/vendor/require.js"></script>
     </head>
-    <body ng-app>
+    <body>
         <!--[if lt IE 7]>
             <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
         <![endif]-->
 
-        <div ng-controller="UserCtrl">
-        	{{userStatus}}
+        <div id="login" ng-controller="loginctrl">
         	<button ng-repeat="auth in auths" ng-click="login(auth)">{{auth}}</button>
+            UID: {{user.uid}}, API-Key: {{user.apikey}}
         </div>
 
-        <input type="bla" ng-model="test" />
-        <h1>Test {{test}}</h1>
-
+        <div id="main">
+            <a href="#/">Home</a>
+            <a href="#/wtf">About</a>
+            <a href="#/domains">Domains</a>
+            <a href="#/domains/go.surmair.de">go.surmair.de</a>
+            <div style="border: 1px solid red" ng-show="error" ng-controller="errorctrl">{{error}}</div>
+            <div ng-view></div>
+        </div>
         <script>
             var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
             (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];

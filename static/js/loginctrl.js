@@ -1,23 +1,24 @@
-define(['angular'], function() {
+define(['config', 'angular'], function(config) {
 	return function($scope, $http) {
-		$scope.userStatus = 'loggedOut';
+		$scope.user = null;
 		$scope.login = function(auth) {
-			window.open('/auth/'+auth+'/');
+			window.open(config.AuthEndpoint + '/' + auth + '/');
 		};
 
 		$scope.refreshAuths = function() {
-			$http.get('/auth/')
+			$http.get(config.AuthEndpoint + '/')
 			.success(function(auths) {
 				$scope.auths = auths;
 			});
 		};
 
 		$scope.refreshUser = function() {
-			$http.get('/api/v1/me')
-			.then(function() {
-				$scope.userStatus = 'loggedIn';
-			}, function() {
-				$scope.userStatus = 'loggedOut';
+			$http.get(config.ApiEndpoint + '/me')
+			.success(function(data) {
+				$scope.user = data;
+			})
+			.error(function() {
+				$scope.user = null;
 			});
 		};
 

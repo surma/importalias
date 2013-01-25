@@ -6,7 +6,8 @@ requirejs.config({
     }
 });
 
-requirejs(['userctrl'], function(userctrl) {
-	window.UserCtrl = userctrl;
+requirejs(['jquery', 'importalias', 'login', 'angular'], function($) {
+	angular.bootstrap($('#login').get(), ['login']);
+	angular.bootstrap($('#main').get(), ['importalias']);
 });
 
