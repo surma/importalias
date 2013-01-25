@@ -64,9 +64,6 @@ func main() {
 }
 
 func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
-	authrouter.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`["google", "github"]`))
-	})
 	for _, authkey := range options.AuthKeys {
 		authconfig, ok := (*options.AuthConfigs)[authkey.Name]
 		if !ok {
@@ -106,6 +103,14 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 				http.StripPrefix(prefix.Path, auth),
 			}))
 	}
+	authrouter.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`["google", "github"]`))
+	})
+	authrouter.Path("/logout").Handler(
+		context.ClearHandler(HandlerList{
+			SilentHandler(SessionHandler(options.SessionStore, int(options.SessionTTL/time.Second))),
+			http.HandlerFunc(LogoutHandler),
+		}))
 }
 
 func setupApiApps(apirouter *mux.Router, domainmgr DomainManager, usermgr UserManager) {

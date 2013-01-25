@@ -5,6 +5,9 @@ define(['config', 'angular'], function(config) {
 		$scope.login = function(auth) {
 			window.open(config.AuthEndpoint + '/' + auth + '/');
 		};
+		$scope.logout = function() {
+			window.open(config.AuthEndpoint + '/logout');
+		};
 		$scope.isLoggedIn = function() {
 			return $scope.user != null;
 		};

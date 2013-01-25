@@ -122,7 +122,15 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 		session.Values["uid"] = user.UID
 		session.Save(r, w)
 	}
-	CALLBACK_TEMPLATE.Execute(w, options.Hostname)
+	CALLBACK_TEMPLATE.Execute(w, nil)
+}
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	session := context.Get(r, "session").(*sessions.Session)
+	session.Values = make(map[interface{}]interface{})
+	session.Save(r, w)
+
+	CALLBACK_TEMPLATE.Execute(w, nil)
 }
 
 func NewJSONExtractor(url string, field string) Extractor {
