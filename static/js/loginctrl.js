@@ -11,6 +11,12 @@ define(['config', 'angular'], function(config) {
 		$scope.isLoggedIn = function() {
 			return $scope.user != null;
 		};
+		$scope.newApiKey = function() {
+			alert("API key regeneration is not yet implemented");
+		};
+		$scope.copyClipboard = function(value) {
+			alert("Copying to clipboard is not yet implemented");
+		}
 
 		var refreshAuths = function() {
 			$http.get(config.AuthEndpoint + '/')

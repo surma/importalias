@@ -30,29 +30,31 @@
             </ul>
             <ul class="nav pull-right">
                 <li class="dropdown" ng-hide="isLoggedIn()" ng-class='{open: open}'>
-                    <a href="" class="dropdown-toggle" ng-click='open=!open'>
+                    <a class="dropdown-toggle" ng-click='open=!open'>
                             Login <b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu">
                         <li ng-repeat="auth in auths">
-                            <a href="" ng-click="login(auth)">{{auth | servicename}}</a>
+                            <a ng-click="login(auth)">{{auth | servicename}}</a>
                         </li>
                     </ul>
                 </li>
                 <li class="dropdown" ng-show="isLoggedIn()" ng-class='{open: open}'>
-                    <a href="" class="dropdown-toggle" ng-click='open=!open'>
+                    <a class="dropdown-toggle" ng-click='open=!open'>
                             User <b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu">
-                        <li>
-                            UID: <code>{{user.uid}}</code>
-                        </li>
-                        <li>
-                            API-Key: <code>{{user.apikey}}</code>
-                        </li>
+                        <li><a>
+                            <p><strong>UID</strong></p>
+                            <p ng-click="copyClipboard(user.uid)"><code>{{user.uid}}</code></p>
+                        </a></li>
+                        <li><a>
+                            <p><strong>API-Key</strong><i class="icon-refresh pull-right" ng-click="newApiKey()" style="cursor: pointer"></i></p>
+                            <p ng-click="copyClipboard(user.apikey)"><code>{{user.apikey}}</code></p>
+                        </a></li>
                     </ul>
                 </li>
-                <li ng-show="isLoggedIn()"><a href="" ng-click="logout()">Logout</a></li>
+                <li ng-show="isLoggedIn()"><a ng-click="logout()">Logout</a></li>
             </ul>
         </div>
     </div>

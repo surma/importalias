@@ -1,6 +1,20 @@
-<h1>domainlist</h1>
-<ul>
-	<li ng-repeat="domain in domains">
-		<a href="#/domains/{{domain}}">{{domain}}</a>
-	</li>
-</ul>
+<h1>Domains</h1>
+<p>Here you will find a list of all domains you have successfully claimed.</p>
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th>Domain</th>
+			<th>Actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="domain in domains">
+			<td>{{domain}}</td>
+			<td><a href="#/domains/{{domain}}" class="btn btn-primary"><i class="icon-edit icon-white"></i></a></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td><a href="#/domains/new" class="btn btn-success"><i class="icon-plus icon-white"></i></a></td>
+		</tr>
+	</tbody>
+</table>
