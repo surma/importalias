@@ -1,6 +1,10 @@
 define([], function() {
 	return {
 		ApiEndpoint: '/api/v1',
-		AuthEndpoint: '/auth'
+		AuthEndpoint: '/auth',
+		ServiceNames: {
+			"github": "GitHub",
+			"google": "Google",
+		},
 	}
 });

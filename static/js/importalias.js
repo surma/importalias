@@ -1,9 +1,10 @@
-define(['domainlistctrl', 'domaindetailsctrl', 'errorctrl', 'angular'],
-	function(domainlistctrl, domaindetailsctrl, errorctrl) {
-	var importalias = angular.module('importalias', []);
-	importalias.controller('errorctrl', errorctrl);
-	importalias.config(['$routeProvider', function($routeProvider) {
-		$routeProvider
+define(['domainlistctrl', 'domaindetailsctrl', 'newaliasctrl', 'errorctrl', 'angular'],
+	function(domainlistctrl, domaindetailsctrl, newaliasctrl, errorctrl) {
+		var importalias = angular.module('importalias', []);
+		importalias.controller('errorctrl', errorctrl);
+		importalias.config(function($locationProvider, $routeProvider) {
+			$locationProvider.html5Mode(false);
+			$routeProvider
 			.when('/', {
 				templateUrl: 'partials/home.html'
 			})
@@ -18,7 +19,11 @@ define(['domainlistctrl', 'domaindetailsctrl', 'errorctrl', 'angular'],
 				templateUrl: 'partials/domaindetails.html',
 				controller: domaindetailsctrl
 			})
+			.when('/domains/:domain/new', {
+				templateUrl: 'partials/newalias.html',
+				controller: newaliasctrl
+			})
 			.otherwise({redirectTo: '/'});
-	}]);
-	return importalias;
-});
+		});
+		return importalias;
+	});

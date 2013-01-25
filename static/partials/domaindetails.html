@@ -2,5 +2,9 @@
 {{domain}}
 
 <ul>
-	<li ng-repeat="alias in aliases">{{domain}}{{alias.alias}} to {{alias.repo_url}}</li>
+	<li ng-repeat="alias in aliases">
+		{{domain}}{{alias.alias}} to {{alias.repo_url}}
+		<a href="" ng-click="deleteAlias(alias.id)">X</a>
+	</li>
 </ul>
+<a href="#/domains/{{domain}}/new">+</a>

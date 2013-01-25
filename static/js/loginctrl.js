@@ -1,18 +1,21 @@
 define(['config', 'angular'], function(config) {
+
 	return function($scope, $http) {
 		$scope.user = null;
 		$scope.login = function(auth) {
 			window.open(config.AuthEndpoint + '/' + auth + '/');
 		};
+		$scope.isLoggedIn = function() {
+			return $scope.user != null;
+		};
 
-		$scope.refreshAuths = function() {
+		var refreshAuths = function() {
 			$http.get(config.AuthEndpoint + '/')
 			.success(function(auths) {
 				$scope.auths = auths;
 			});
 		};
-
-		$scope.refreshUser = function() {
+		var refreshUser = function() {
 			$http.get(config.ApiEndpoint + '/me')
 			.success(function(data) {
 				$scope.user = data;
@@ -21,18 +24,16 @@ define(['config', 'angular'], function(config) {
 				$scope.user = null;
 			});
 		};
-
-		$scope.refresh = function() {
-			$scope.refreshAuths();
-			$scope.refreshUser();
-		}
+		var refresh = function() {
+			refreshAuths();
+			refreshUser();
+		};
 
 		window.addEventListener('message', function(event) {
 			if(event.data == 'auth_done') {
-				$scope.refreshUser();
+				refreshUser();
 			}
 		}, false);
-
-		$scope.refresh();
+		refresh();
 	};
 });
