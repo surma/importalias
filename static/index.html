@@ -12,6 +12,7 @@
 
     <link rel="stylesheet" href="css/bootstrap-cosmo.css">
     <!-- <link rel="stylesheet" href="css/bootstrap.css"> -->
+    <link rel="stylesheet" href="css/custom.css">
 
     <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
     <script data-main="js/main" src="js/vendor/require.js"></script>
@@ -39,19 +40,19 @@
                         </li>
                     </ul>
                 </li>
-                <li class="dropdown" ng-show="isLoggedIn()" ng-class='{open: open}'>
+                <li id="userdata" class="dropdown" ng-show="isLoggedIn()" ng-class='{open: open}'>
                     <a class="dropdown-toggle" ng-click='open=!open'>
                             User <b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a>
+                        <li>
                             <p><strong>UID</strong></p>
-                            <p ng-click="copyClipboard(user.uid)"><code>{{user.uid}}</code></p>
-                        </a></li>
-                        <li><a>
+                            <p><code>{{user.uid}}</code></p>
+                        </li>
+                        <li>
                             <p><strong>API-Key</strong><i class="icon-refresh pull-right" ng-click="newApiKey()" style="cursor: pointer"></i></p>
-                            <p ng-click="copyClipboard(user.apikey)"><code>{{user.apikey}}</code></p>
-                        </a></li>
+                            <p><code>{{user.apikey}}</code></p>
+                        </li>
                     </ul>
                 </li>
                 <li ng-show="isLoggedIn()"><a ng-click="logout()">Logout</a></li>
