@@ -1,6 +1,6 @@
 define(['config', 'angular'], function(config) {
 
-	return function($scope, $http) {
+	return function($scope, $http, $location) {
 		$scope.user = null;
 		$scope.login = function(auth) {
 			window.open(config.AuthEndpoint + '/' + auth + '/');
@@ -28,6 +28,7 @@ define(['config', 'angular'], function(config) {
 			})
 			.error(function() {
 				$scope.user = null;
+				$location.path('/');
 			});
 		};
 		var refresh = function() {
