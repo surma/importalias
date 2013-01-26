@@ -21,7 +21,7 @@ func (m *Metapage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "http://"+options.Hostname+"/unknown", http.StatusMovedPermanently)
 			return
 		}
-		TEMPLATE.Execute(w, domain.Aliases)
+		META_TEMPLATE.Execute(w, domain.Aliases)
 		return
 	}
 
@@ -35,7 +35,7 @@ func (m *Metapage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, alias.ForwardURL, http.StatusMovedPermanently)
 		return
 	}
-	TEMPLATE.Execute(w, []*Alias{alias})
+	META_TEMPLATE.Execute(w, []*Alias{alias})
 }
 
 func isGoGetRequest(r *http.Request) bool {
@@ -51,7 +51,7 @@ func isGoGetRequest(r *http.Request) bool {
 }
 
 var (
-	TEMPLATE = template.Must(template.New("").Parse(`
+	META_TEMPLATE = template.Must(template.New("").Parse(`
 		<head>
 			{{range .}}
 			<meta name="go-import" content="{{.Alias}} {{.RepoType}} {{.RepoURL}}" />

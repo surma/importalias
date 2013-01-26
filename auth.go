@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strings"
@@ -68,6 +69,14 @@ func (a *OAuthAuthenticator) authHandler(w http.ResponseWriter, r *http.Request)
 	http.Redirect(w, r, a.config.AuthCodeURL(""), http.StatusFound)
 }
 
+var (
+	CALLBACK_TEMPLATE = template.Must(template.New("").Parse(`
+		<script>
+			window.opener.postMessage("auth_done", "*");
+			window.close();
+		</script>`))
+)
+
 func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	transport := (&oauth.Transport{Config: a.config})
 	_, err := transport.Exchange(r.FormValue("code"))
@@ -93,25 +102,35 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 			http.Error(w, "Could not create user", http.StatusInternalServerError)
 			return
 		}
-		return
-	}
-
-	user, err := a.usermgr.FindByAuthenticator(a.authname, id)
-	if err != nil && err != ErrNotFound {
-		log.Printf("Could not query user database: %s", err)
-		http.Error(w, "Could not query user database", http.StatusInternalServerError)
-		return
-	} else if err == ErrNotFound {
-		// New user
-		user, err = a.usermgr.New(a.authname, id)
-		if err != nil {
-			log.Printf("Error creating user: %s", err)
-			http.Error(w, "Error creating user", http.StatusInternalServerError)
+	} else {
+		// Login
+		user, err := a.usermgr.FindByAuthenticator(a.authname, id)
+		if err != nil && err != ErrNotFound {
+			log.Printf("Could not query user database: %s", err)
+			http.Error(w, "Could not query user database", http.StatusInternalServerError)
 			return
+		} else if err == ErrNotFound {
+			// New user
+			user, err = a.usermgr.New(a.authname, id)
+			if err != nil {
+				log.Printf("Error creating user: %s", err)
+				http.Error(w, "Error creating user", http.StatusInternalServerError)
+				return
+			}
 		}
+		session := context.Get(r, "session").(*sessions.Session)
+		session.Values["uid"] = user.UID
+		session.Save(r, w)
 	}
-	// Login
-	context.Get(r, "session").(*sessions.Session).Values["uid"] = user.UID
+	CALLBACK_TEMPLATE.Execute(w, nil)
+}
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	session := context.Get(r, "session").(*sessions.Session)
+	session.Values = make(map[interface{}]interface{})
+	session.Save(r, w)
+
+	CALLBACK_TEMPLATE.Execute(w, nil)
 }
 
 func NewJSONExtractor(url string, field string) Extractor {
@@ -142,7 +161,7 @@ func NewJSONExtractor(url string, field string) Extractor {
 	})
 }
 
-func SessionOpener(s sessions.Store, ttl int) http.Handler {
+func SessionHandler(s sessions.Store, ttl int) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := s.Get(r, "session")
 		if err != nil {
@@ -153,13 +172,7 @@ func SessionOpener(s sessions.Store, ttl int) http.Handler {
 		}
 		session.Options.MaxAge = ttl
 		context.Set(r, "session", session)
-	})
-}
-
-func SessionSaver() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := context.Get(r, "session").(*sessions.Session).Save(r, w)
-		if err != nil {
+		if err := session.Save(r, w); err != nil {
 			http.Error(w, fmt.Sprintf("Could not save session: %s", err), http.StatusInternalServerError)
 		}
 	})

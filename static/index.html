@@ -1,6 +1,70 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>ImportAlias</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+
+    <link rel="stylesheet" href="css/bootstrap-cosmo.css">
+    <!-- <link rel="stylesheet" href="css/bootstrap.css"> -->
+
+    <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+    <script data-main="js/main" src="js/vendor/require.js"></script>
+</head>
 <body>
-	<h1>Wuuut?</h1>
+    <!--[if lt IE 7]>
+        <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+    <![endif]-->
+
+    <div class="navbar" ng-controller="loginctrl">
+        <div class="navbar-inner">
+            <a class="brand" href="#">ImportAlias</a>
+            <ul class="nav">
+                <li><a href="#/wtf">About</a></li>
+                <li ng-show="isLoggedIn()"><a href="#/domains">Domains</a></li>
+            </ul>
+            <ul class="nav pull-right">
+                <li class="dropdown" ng-hide="isLoggedIn()" ng-class='{open: open}'>
+                    <a class="dropdown-toggle" ng-click='open=!open'>
+                            Login <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li ng-repeat="auth in auths">
+                            <a ng-click="login(auth)">{{auth | servicename}}</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="dropdown" ng-show="isLoggedIn()" ng-class='{open: open}'>
+                    <a class="dropdown-toggle" ng-click='open=!open'>
+                            User <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a>
+                            <p><strong>UID</strong></p>
+                            <p ng-click="copyClipboard(user.uid)"><code>{{user.uid}}</code></p>
+                        </a></li>
+                        <li><a>
+                            <p><strong>API-Key</strong><i class="icon-refresh pull-right" ng-click="newApiKey()" style="cursor: pointer"></i></p>
+                            <p ng-click="copyClipboard(user.apikey)"><code>{{user.apikey}}</code></p>
+                        </a></li>
+                    </ul>
+                </li>
+                <li ng-show="isLoggedIn()"><a ng-click="logout()">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container" ng-view></div>
+    <script>
+    var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+        s.parentNode.insertBefore(g,s)}(document,'script'));
+    </script>
 </body>
 </html>

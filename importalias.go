@@ -99,18 +99,25 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 		}
 		authrouter.PathPrefix("/" + authkey.Name).Handler(
 			context.ClearHandler(HandlerList{
-				SilentHandler(SessionOpener(options.SessionStore, int(options.SessionTTL/time.Second))),
+				SilentHandler(SessionHandler(options.SessionStore, int(options.SessionTTL/time.Second))),
 				http.StripPrefix(prefix.Path, auth),
-				SilentHandler(SessionSaver()),
 			}))
 	}
+	authrouter.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`["google", "github"]`))
+	})
+	authrouter.Path("/logout").Handler(
+		context.ClearHandler(HandlerList{
+			SilentHandler(SessionHandler(options.SessionStore, int(options.SessionTTL/time.Second))),
+			http.HandlerFunc(LogoutHandler),
+		}))
 }
 
 func setupApiApps(apirouter *mux.Router, domainmgr DomainManager, usermgr UserManager) {
 	prefix, _ := apirouter.Path("/").URL()
 	apirouter.PathPrefix("/v1").Handler(
 		context.ClearHandler(HandlerList{
-			SilentHandler(SessionOpener(options.SessionStore, int(options.SessionTTL/time.Second))),
+			SilentHandler(SessionHandler(options.SessionStore, int(options.SessionTTL/time.Second))),
 			SilentHandler(BasicAuth(usermgr)),
 			SilentHandler(ValidateUID(usermgr)),
 			http.StripPrefix(prefix.Path+"v1", NewAPIv1(domainmgr, usermgr)),
