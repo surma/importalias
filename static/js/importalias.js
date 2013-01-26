@@ -15,17 +15,9 @@ define(['domainlistctrl', 'domaindetailsctrl', 'newdomainctrl', 'newaliasctrl', 
 				templateUrl: 'partials/domainlist.html',
 				controller: domainlistctrl
 			})
-			.when('/domains/new', {
-				templateUrl: 'partials/newdomain.html',
-				controller: newdomainctrl
-			})
 			.when('/domains/:domain', {
 				templateUrl: 'partials/domaindetails.html',
 				controller: domaindetailsctrl
-			})
-			.when('/domains/:domain/new', {
-				templateUrl: 'partials/newalias.html',
-				controller: newaliasctrl
 			})
 			.otherwise({redirectTo: '/'});
 		});
