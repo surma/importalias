@@ -30,8 +30,8 @@
                 <li ng-show="isLoggedIn()"><a href="#/domains">Domains</a></li>
             </ul>
             <ul class="nav pull-right">
-                <li class="dropdown" ng-hide="isLoggedIn()" ng-class='{open: open}'>
-                    <a class="dropdown-toggle" ng-click='open=!open'>
+                <li class="dropdown" ng-hide="isLoggedIn()" ng-class='{open: dropDownOpen}'>
+                    <a class="dropdown-toggle" ng-click='dropDownOpen=!dropDownOpen'>
                             Login <b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu">
@@ -40,8 +40,8 @@
                         </li>
                     </ul>
                 </li>
-                <li id="userdata" class="dropdown" ng-show="isLoggedIn()" ng-class='{open: open}'>
-                    <a class="dropdown-toggle" ng-click='open=!open'>
+                <li id="userdata" class="dropdown" ng-show="isLoggedIn()" ng-class='{open: dropDownOpen}'>
+                    <a class="dropdown-toggle" ng-click='dropDownOpen=!dropDownOpen'>
                             User <b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu">

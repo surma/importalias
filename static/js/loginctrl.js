@@ -29,6 +29,9 @@ define(['config', 'angular'], function(config) {
 			.error(function() {
 				$scope.user = null;
 				$location.path('/');
+			})
+			.then(function() {
+				$scope.dropDownOpen = false;
 			});
 		};
 		var refresh = function() {
