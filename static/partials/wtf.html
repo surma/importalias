@@ -1,1 +1,63 @@
 <h1>About</h1>
+<p>
+	The feature of <a href="http://golang.org/cmd/go/#hdr-Remote_import_path_syntax">Vanity Imports</a> (or
+	<em>remote import paths</em>, as they are called in the reference) have been implemented for a while,
+	but does not seem to be used that often. I assume, because it makes you maintain an HTML header section.
+	This is, what ImportAlias will do <em>for</em> you.
+</p>
+<h2>Getting started</h2>
+<p>
+	I tried to keep it as simple as possible. You don't need to remember any credentials, I only
+	offer 3rd party login. Right now I support <a href="http://github.com">GitHub</a> and
+	<a href="http://google.com">Google</a>. Just click the Login button in the top right corner.
+</p>
+<p>
+	Before you can add an alias route, you need to <em>claim</em> a domain.
+	Right now, a domain can be managed by one person (one account) only. The architecture
+	has been designed to support delegates, but the functionality has not been exposed just yet.
+	To verify that you are actually the owner of the domain you are about to claim,
+	a DNS request is made to check, if said domain contains a TXT record containung
+	your UID. The DNS request is made against <a href="https://developers.google.com/speed/public-dns/">Google’s DNS</a>
+	and not resolved manually so give the record some time to propagate.
+</p>
+<p class="well">
+	<span class="badge badge-info">Example:</span> Let’s assume you want to claim
+	the domain <code>surmair.de</code>. Go to your DNS provider and make an entry
+	for <code>_importalias.surmair.de</code> and set the content to your UID. You
+	can find your UID (as well as your personal API key) in the dropdown in the
+	navigation bar at the top.
+</p>
+<p>
+	Now that you have your domain you can add aliases. Each alias has some information
+	saved about them:
+	<dl class="well">
+		<dt>Alias</dt>
+		<dd>
+			The path which should be aliased for a remote repository. It may contain multiples slashes.
+		</dd>
+		<dt>Repository</dt>
+		<dd>
+			Type and URL of said repository. At the moment Git, Mercurial and Bazaar
+			are supported by <code>go get</code>.
+		</dd>
+		<dt>Forward URL</dt>
+		<dd>
+			The URL to forward to when it is accessed by something else than <code>go get</code> (e.g. a browser).
+		</dd>
+	</dl>
+</p>
+<h2>Alpha</h2>
+<p>
+	<span class="badge badge-important">Important:</span> I give this service the “alpha stage” mark.
+	Nothing has been tested in the wild and I will not give any guarantees. If you rely on your Go imports
+	and need them to work 24/7, do not use this service just yet.
+</p>
+<p>
+	Also: What are you doing, that you need your imports to work 24/7?!
+</p>
+<h2>The name</h2>
+<p>
+	The name sucks badly, I know. But my ideas are either really boring or have no connection whatsoever
+	to the project. If you happen to have a suggestion, <a href="mailto:surma@surmair.de">drop me a line</a>.
+	I am grateful for any idea.
+</p>

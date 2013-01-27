@@ -5,3 +5,4 @@
 * Remove dirty `/auth` hack
 * Write `submount()` method for `mux.Router`
 * Allow multiple accounts from same OAuth provider on same account
+* Error reporting (and new error types)

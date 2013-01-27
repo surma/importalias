@@ -11,6 +11,9 @@ define(['domainlistctrl', 'domaindetailsctrl', 'errorctrl', 'angular'],
 			.when('/wtf', {
 				templateUrl: 'partials/wtf.html'
 			})
+			.when('/legal', {
+				templateUrl: 'partials/legal.html'
+			})
 			.when('/domains', {
 				templateUrl: 'partials/domainlist.html',
 				controller: domainlistctrl
