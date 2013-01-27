@@ -21,7 +21,9 @@ define(['bootstrap', 'config'], function($, config) {
 					repo_type: "git",
 				}
 			}
-			dialog.modal();
+			dialog.modal({
+				backdrop: false,
+			});
 		}
 		$scope.saveNewAlias = function() {
 			$http.put(config.ApiEndpoint + '/domains/' + $scope.domain, $scope.alias)

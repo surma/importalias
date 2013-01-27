@@ -24,6 +24,7 @@ define(['config'], function(config) {
 			$http.get(config.ApiEndpoint + '/me')
 			.success(function(data) {
 				$scope.user = data;
+				window.notify('success', 'Logged in');
 			})
 			.error(function() {
 				$scope.user = null;

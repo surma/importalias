@@ -4,7 +4,9 @@ define(['bootstrap', 'config'], function($, config) {
 		$scope.domains = [];
 
 		$scope.openNewDomainDialog = function() {
-			dialog.modal();
+			dialog.modal({
+				backdrop: false,
+			});
 		};
 		$scope.saveNewDomain = function() {
 			$http.post(config.ApiEndpoint + '/domains/' + $scope.newDomainName)
