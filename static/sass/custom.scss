@@ -1,6 +1,10 @@
 @import "compass/css3/transform";
 @import "compass/css3/opacity";
 
+body {
+	padding-top: 70px;
+}
+
 li#userdata > ul > li  {
 	padding: 3px 20px;
 }

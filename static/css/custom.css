@@ -1,14 +1,19 @@
 @charset "UTF-8";
 /* line 4, ../sass/custom.scss */
+body {
+  padding-top: 70px;
+}
+
+/* line 7, ../sass/custom.scss */
 li#userdata > ul > li {
   padding: 3px 20px;
 }
 
-/* line 8, ../sass/custom.scss */
+/* line 11, ../sass/custom.scss */
 .navbar .brand {
   position: relative;
 }
-/* line 10, ../sass/custom.scss */
+/* line 13, ../sass/custom.scss */
 .navbar .brand:after {
   position: relative;
   float: right;
@@ -27,42 +32,42 @@ li#userdata > ul > li {
   opacity: 0.8;
 }
 
-/* line 24, ../sass/custom.scss */
+/* line 27, ../sass/custom.scss */
 .navbar .logins img {
   margin-right: 5px;
 }
 
-/* line 28, ../sass/custom.scss */
+/* line 31, ../sass/custom.scss */
 .modal {
   left: 40% !important;
 }
 
-/* line 32, ../sass/custom.scss */
+/* line 35, ../sass/custom.scss */
 body > footer {
   text-align: center;
 }
-/* line 34, ../sass/custom.scss */
+/* line 37, ../sass/custom.scss */
 body > footer a {
   color: inherit;
 }
-/* line 36, ../sass/custom.scss */
+/* line 39, ../sass/custom.scss */
 body > footer a:before {
   content: '[';
 }
-/* line 39, ../sass/custom.scss */
+/* line 42, ../sass/custom.scss */
 body > footer a:after {
   content: ']';
 }
-/* line 43, ../sass/custom.scss */
+/* line 46, ../sass/custom.scss */
 body > footer ul {
   list-stype-type: none;
 }
-/* line 45, ../sass/custom.scss */
+/* line 48, ../sass/custom.scss */
 body > footer ul li {
   display: inline;
   margin: 0;
 }
-/* line 48, ../sass/custom.scss */
+/* line 51, ../sass/custom.scss */
 body > footer ul li:not(:last-child):after {
   content: '•';
 }
