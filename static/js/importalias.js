@@ -1,5 +1,5 @@
-define(['domainlistctrl', 'domaindetailsctrl', 'newdomainctrl', 'newaliasctrl', 'errorctrl', 'angular'],
-	function(domainlistctrl, domaindetailsctrl, newdomainctrl, newaliasctrl, errorctrl) {
+define(['domainlistctrl', 'domaindetailsctrl', 'errorctrl', 'angular'],
+	function(domainlistctrl, domaindetailsctrl, errorctrl) {
 		var importalias = angular.module('importalias', []);
 		importalias.controller('errorctrl', errorctrl);
 		importalias.config(function($locationProvider, $routeProvider) {
