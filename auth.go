@@ -105,11 +105,11 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 	} else {
 		// Login
 		user, err := a.usermgr.FindByAuthenticator(a.authname, id)
-		if err != nil && err != ErrNotFound {
+		if err != nil && err != ErrUserNotFound {
 			log.Printf("Could not query user database: %s", err)
 			http.Error(w, "Could not query user database", http.StatusInternalServerError)
 			return
-		} else if err == ErrNotFound {
+		} else if err == ErrUserNotFound {
 			// New user
 			user, err = a.usermgr.New(a.authname, id)
 			if err != nil {

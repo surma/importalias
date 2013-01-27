@@ -8,6 +8,8 @@ import (
 
 var (
 	ErrAlreadyClaimed = fmt.Errorf("Domain already claimed")
+	ErrAliasNotFound  = fmt.Errorf("Alias not found")
+	ErrDomainNotFound = fmt.Errorf("Domain not found")
 )
 
 type DomainManager interface {

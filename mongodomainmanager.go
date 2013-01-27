@@ -17,7 +17,7 @@ func (mdm *MongoDomainManager) ClaimDomain(name string, uid *gouuid.UUID) error 
 	_, err := mdm.FindDomain(name)
 	if err == nil {
 		return ErrAlreadyClaimed
-	} else if err != ErrNotFound {
+	} else if err != ErrDomainNotFound {
 		return fmt.Errorf("Invalid domain query result")
 	}
 
@@ -34,7 +34,7 @@ func (mdm *MongoDomainManager) FindDomain(name string) (*Domain, error) {
 		"name": name,
 	})
 	if count, _ := qry.Count(); count != 1 {
-		return nil, ErrNotFound
+		return nil, ErrDomainNotFound
 	}
 	err := qry.One(domain)
 	return domain, err
@@ -107,7 +107,7 @@ func (mdm *MongoDomainManager) FindAlias(domain string, alias string) (*Alias, e
 		},
 	}).One(d)
 	if err != nil || len(d.Aliases) <= 0 {
-		return nil, ErrNotFound
+		return nil, ErrAliasNotFound
 	}
 	return d.Aliases[0], nil
 }

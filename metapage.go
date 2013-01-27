@@ -23,13 +23,16 @@ func (m *Metapage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "http://"+options.Hostname+"/unknown", http.StatusMovedPermanently)
 			return
 		}
-		META_TEMPLATE.Execute(w, domain.Aliases)
+		META_TEMPLATE.Execute(w, map[string]interface{}{
+			"Aliases": domain.Aliases,
+			"Domain":  r.Host,
+		})
 		return
 	}
 
 	alias, err := m.domainmgr.FindAlias(r.Host, r.URL.Path)
 	if err != nil {
-		log.Printf("Unknown alias: %s|%s", r.Host, r.URL.Path)
+		log.Printf("Unknown alias %s|%s: %s", r.Host, r.URL.Path, err)
 		http.Redirect(w, r, "http://"+options.Hostname+"/unknown", http.StatusMovedPermanently)
 		return
 	}
@@ -38,7 +41,13 @@ func (m *Metapage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, alias.ForwardURL, http.StatusMovedPermanently)
 		return
 	}
-	META_TEMPLATE.Execute(w, []*Alias{alias})
+	err = META_TEMPLATE.Execute(w, map[string]interface{}{
+		"Aliases": []*Alias{alias},
+		"Domain":  r.Host,
+	})
+	if err != nil {
+		log.Printf("Template rendering failed: %s", err)
+	}
 }
 
 func isGoGetRequest(r *http.Request) bool {
@@ -56,8 +65,10 @@ func isGoGetRequest(r *http.Request) bool {
 var (
 	META_TEMPLATE = template.Must(template.New("").Parse(`
 		<head>
-			{{range .}}
-			<meta name="go-import" content="{{.Alias}} {{.RepoType}} {{.RepoURL}}" />
+			{{with $ := .}}
+				{{range .Aliases}}
+					<meta name="go-import" content="{{$.Domain}}{{.Alias}} {{.RepoType}} {{.RepoURL}}" />
+				{{end}}
 			{{end}}
 		</head>`))
 )

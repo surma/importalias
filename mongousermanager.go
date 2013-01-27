@@ -17,7 +17,7 @@ func (mum *MongoUserManager) FindByAuthenticator(authenticator, id string) (*Use
 		"authenticators." + authenticator: id,
 	})
 	if count, _ := qry.Count(); count != 1 {
-		return nil, ErrNotFound
+		return nil, ErrUserNotFound
 	}
 	err := qry.One(user)
 	return user, err
@@ -29,7 +29,7 @@ func (mum *MongoUserManager) FindByAPIKey(apikey *gouuid.UUID) (*User, error) {
 		"apikey": apikey,
 	})
 	if count, _ := qry.Count(); count != 1 {
-		return nil, ErrNotFound
+		return nil, ErrUserNotFound
 	}
 	err := qry.One(user)
 	return user, err
@@ -41,7 +41,7 @@ func (mum *MongoUserManager) FindByUID(uid *gouuid.UUID) (*User, error) {
 		"uid": uid,
 	})
 	if count, _ := qry.Count(); count != 1 {
-		return nil, ErrNotFound
+		return nil, ErrUserNotFound
 	}
 	err := qry.One(user)
 	return user, err

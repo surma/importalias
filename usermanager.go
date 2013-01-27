@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrNotFound = fmt.Errorf("User not found")
+	ErrUserNotFound = fmt.Errorf("User not found")
 )
 
 type UserManager interface {
