@@ -1,4 +1,4 @@
-define(['config'], function(config) {
+define(['underscore', 'config'], function(_, config) {
 	return function($scope, $http, $location) {
 		$scope.user = null;
 		$scope.login = function(auth) {
@@ -17,7 +17,9 @@ define(['config'], function(config) {
 		var refreshAuths = function() {
 			$http.get(config.AuthEndpoint + '/')
 			.success(function(auths) {
-				$scope.auths = auths;
+				$scope.auths = _.map(auths, function(authname) {
+					return config.Services[authname]
+				});
 			});
 		};
 		var refreshUser = function() {

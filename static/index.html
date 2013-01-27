@@ -34,9 +34,9 @@
                     <a class="dropdown-toggle" ng-click='dropDownOpen=!dropDownOpen'>
                             Login <b class="caret"></b>
                     </a>
-                    <ul class="dropdown-menu">
-                        <li ng-repeat="auth in auths">
-                            <a ng-click="login(auth)">{{auth | servicename}}</a>
+                    <ul class="dropdown-menu logins">
+                        <li ng-repeat="auth in auths | orderBy:'name'">
+                            <a ng-click="login(auth.id)"><img src="img/{{auth.icon}}" />{{auth.name}}</a>
                         </li>
                     </ul>
                 </li>

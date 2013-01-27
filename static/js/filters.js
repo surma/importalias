@@ -1,8 +1,8 @@
 define(['config'], function(config) {
     return {
-        servicename: function() {
+        service: function() {
             return function(input) {
-                var name = config.ServiceNames[input];
+                var name = config.Services[input];
                 if(!name) {
                     return input;
                 }

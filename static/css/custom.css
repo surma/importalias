@@ -28,36 +28,41 @@ li#userdata > ul > li {
 }
 
 /* line 24, ../sass/custom.scss */
+.navbar .logins img {
+  margin-right: 5px;
+}
+
+/* line 28, ../sass/custom.scss */
 .modal {
   left: 40% !important;
 }
 
-/* line 28, ../sass/custom.scss */
+/* line 32, ../sass/custom.scss */
 body > footer {
   text-align: center;
 }
-/* line 30, ../sass/custom.scss */
+/* line 34, ../sass/custom.scss */
 body > footer a {
   color: inherit;
 }
-/* line 32, ../sass/custom.scss */
+/* line 36, ../sass/custom.scss */
 body > footer a:before {
   content: '[';
 }
-/* line 35, ../sass/custom.scss */
+/* line 39, ../sass/custom.scss */
 body > footer a:after {
   content: ']';
 }
-/* line 39, ../sass/custom.scss */
+/* line 43, ../sass/custom.scss */
 body > footer ul {
   list-stype-type: none;
 }
-/* line 41, ../sass/custom.scss */
+/* line 45, ../sass/custom.scss */
 body > footer ul li {
   display: inline;
   margin: 0;
 }
-/* line 44, ../sass/custom.scss */
+/* line 48, ../sass/custom.scss */
 body > footer ul li:not(:last-child):after {
   content: '•';
 }
