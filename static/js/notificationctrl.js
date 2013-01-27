@@ -8,7 +8,7 @@ define(['underscore'], function(_) {
 			$scope.notifications = notification_buffer;
 		};
 
-		window.notify = function(type, message, permanent) {
+		window.notify = function(type, message) {
 			var notification = {
 				type: type,
 				message: message,

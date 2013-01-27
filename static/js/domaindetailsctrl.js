@@ -5,7 +5,13 @@ define(['bootstrap', 'config'], function($, config) {
 		$scope.alias = {};
 		$scope.deleteAlias = function(id) {
 			$http.delete(config.ApiEndpoint + '/domains/' + $scope.domain + '/' + id)
-			.success(refresh);
+			.success(function() {
+				window.notify('success', 'Alias deleted');
+				refresh();
+			})
+			.error(function(data) {
+				window.notify('error', data);
+			});
 		}
 		$scope.openAliasDialog = function(alias) {
 			if(alias) {
@@ -20,11 +26,12 @@ define(['bootstrap', 'config'], function($, config) {
 		$scope.saveNewAlias = function() {
 			$http.put(config.ApiEndpoint + '/domains/' + $scope.domain, $scope.alias)
 			.success(function() {
+				window.notify('success', 'Alias added');
 				dialog.modal('hide');
 				refresh();
 			})
 			.error(function(data) {
-				console.log('Error: ' + data);
+				window.notify('error', data);
 			})
 		}
 
@@ -36,7 +43,8 @@ define(['bootstrap', 'config'], function($, config) {
 				$scope.aliases = data;
 			})
 			.error(function() {
-				console.log('error. Todo: Redirect + error');
+				window.notify('error', 'Are you not logged in?');
+				$location.path('/');
 			});
 		}
 		refresh();
