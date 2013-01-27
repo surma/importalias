@@ -1,5 +1,4 @@
-define(['config', 'angular'], function(config) {
-
+define(['config'], function(config) {
 	return function($scope, $http, $location) {
 		$scope.user = null;
 		$scope.login = function(auth) {
@@ -25,6 +24,7 @@ define(['config', 'angular'], function(config) {
 			$http.get(config.ApiEndpoint + '/me')
 			.success(function(data) {
 				$scope.user = data;
+				window.notify('success', 'Logged in');
 			})
 			.error(function() {
 				$scope.user = null;

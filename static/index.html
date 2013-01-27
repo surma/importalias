@@ -59,8 +59,17 @@
             </ul>
         </div>
     </div>
-
-    <div class="container" ng-view></div>
+    <div class="container">
+        <div class="row">
+            <div class="span9" ng-view></div>
+            <div class="span3" ng-controller="notificationctrl">
+               <div ng-repeat="notification in notifications" class="alert alert-{{notification.type}}" ng-show="notification.visible">
+                      <button type="button" class="close" data-dismiss="alert">&times;</button>
+                      {{notification.message}}
+                </div>
+            </div>
+        </div>
+    </div>
     <footer class="footer">
         <ng-include src="'partials/footer.html'"></ng-include>
     </footer>

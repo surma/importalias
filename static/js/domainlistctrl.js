@@ -1,28 +1,32 @@
-define(['jquery', 'config', 'bootstrap', 'angular'], function($, config) {
+define(['bootstrap', 'config'], function($, config) {
 	return function($scope, $http, $location) {
 		$scope.newDomainName = "";
 		$scope.domains = [];
 
 		$scope.openNewDomainDialog = function() {
-			dialog.modal();
+			dialog.modal({
+				backdrop: false,
+			});
 		};
 		$scope.saveNewDomain = function() {
 			$http.post(config.ApiEndpoint + '/domains/' + $scope.newDomainName)
 			.success(function() {
 				dialog.modal('hide');
+				window.notify('success', 'Domain added');
 				refresh();
 			})
 			.error(function(data) {
-				console.log('Error: ' + data);
+				window.notify('error', data);
 			})
 		}
 		$scope.deleteDomain = function(domain) {
 			$http.delete(config.ApiEndpoint + '/domains/' + domain)
 			.success(function() {
+				window.notify('success', 'Domain deleted');
 				refresh();
 			})
 			.error(function(data) {
-				console.log('Error: ' + data);
+				window.notify('error', data);
 			});
 		}
 
@@ -33,9 +37,8 @@ define(['jquery', 'config', 'bootstrap', 'angular'], function($, config) {
 			.success(function(data) {
 				$scope.domains = data;
 			}).error(function() {
-				$location
-				.path('/')
-				.search('error','Apparently you are not logged in');
+				window.notify('error', 'Are you not logged in?');
+				$location.path('/');
 			});
 		};
 		refresh();

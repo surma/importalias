@@ -1,4 +1,4 @@
-define(['config', 'angular'], function(config) {
+define(['config'], function(config) {
     return {
         servicename: function() {
             return function(input) {
