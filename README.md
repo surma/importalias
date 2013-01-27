@@ -1,4 +1,4 @@
-ImportAlias is a webservice to manage [remote import paths][1]
+ImportAlias is a webservice to manage [vanity remote import paths][1]
 as offerd by the `go` tool of the [Go programming language][2]. Its
 aim is to keep the necessary effort to maintain your aliases to a
 minimum.
