@@ -1,40 +1,63 @@
 @charset "UTF-8";
-/* line 1, ../sass/custom.scss */
+/* line 4, ../sass/custom.scss */
 li#userdata > ul > li {
   padding: 3px 20px;
 }
 
-/* line 5, ../sass/custom.scss */
+/* line 8, ../sass/custom.scss */
+.navbar .brand {
+  position: relative;
+}
+/* line 10, ../sass/custom.scss */
+.navbar .brand:after {
+  position: relative;
+  float: right;
+  top: -10px;
+  left: -5px;
+  display: block;
+  content: 'α';
+  font-size: 150%;
+  -webkit-transform: rotate(30deg);
+  -moz-transform: rotate(30deg);
+  -ms-transform: rotate(30deg);
+  -o-transform: rotate(30deg);
+  transform: rotate(30deg);
+  color: red;
+  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=80);
+  opacity: 0.8;
+}
+
+/* line 24, ../sass/custom.scss */
 .modal {
   left: 40% !important;
 }
 
-/* line 9, ../sass/custom.scss */
+/* line 28, ../sass/custom.scss */
 body > footer {
   text-align: center;
 }
-/* line 11, ../sass/custom.scss */
+/* line 30, ../sass/custom.scss */
 body > footer a {
   color: inherit;
 }
-/* line 13, ../sass/custom.scss */
+/* line 32, ../sass/custom.scss */
 body > footer a:before {
   content: '[';
 }
-/* line 16, ../sass/custom.scss */
+/* line 35, ../sass/custom.scss */
 body > footer a:after {
   content: ']';
 }
-/* line 20, ../sass/custom.scss */
+/* line 39, ../sass/custom.scss */
 body > footer ul {
   list-stype-type: none;
 }
-/* line 22, ../sass/custom.scss */
+/* line 41, ../sass/custom.scss */
 body > footer ul li {
   display: inline;
   margin: 0;
 }
-/* line 25, ../sass/custom.scss */
+/* line 44, ../sass/custom.scss */
 body > footer ul li:not(:last-child):after {
   content: '•';
 }
