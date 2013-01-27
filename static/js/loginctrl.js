@@ -1,5 +1,4 @@
-define(['config', 'angular'], function(config) {
-
+define(['config'], function(config) {
 	return function($scope, $http, $location) {
 		$scope.user = null;
 		$scope.login = function(auth) {

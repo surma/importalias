@@ -1,7 +1,8 @@
-define(['domainlistctrl', 'domaindetailsctrl', 'errorctrl', 'angular'],
-	function(domainlistctrl, domaindetailsctrl, errorctrl) {
+define(['angular', 'domainlistctrl', 'domaindetailsctrl', 'notificationctrl', 'loginctrl'],
+	function(angular, domainlistctrl, domaindetailsctrl, notificationctrl, loginctrl) {
 		var importalias = angular.module('importalias', []);
-		importalias.controller('errorctrl', errorctrl);
+		importalias.controller('notificationctrl', notificationctrl);
+	    importalias.controller('loginctrl', loginctrl);
 		importalias.config(function($locationProvider, $routeProvider) {
 			$locationProvider.html5Mode(false);
 			$routeProvider

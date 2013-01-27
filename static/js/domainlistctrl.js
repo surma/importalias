@@ -1,4 +1,4 @@
-define(['jquery', 'config', 'bootstrap', 'angular'], function($, config) {
+define(['bootstrap', 'config'], function($, config) {
 	return function($scope, $http, $location) {
 		$scope.newDomainName = "";
 		$scope.domains = [];

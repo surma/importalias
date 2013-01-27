@@ -3,14 +3,28 @@ requirejs.config({
     paths: {
     	'angular': '/js/vendor/angular',
     	'jquery': '/js/vendor/jquery-1.8.3.min',
-    	'bootstrap': '/js/vendor/bootstrap'
-    }
+    	'bootstrap': '/js/vendor/bootstrap',
+        'underscore': '/js/vendor/underscore',
+    },
+    shim: {
+        'underscore': {
+            exports: '_',
+        },
+        'bootstrap': {
+            deps: ['jquery'],
+            exports: '$',
+        },
+        'angular': {
+            deps: ['jquery'],
+            exports: 'angular',
+        },
+    },
 });
 
-requirejs(['jquery', 'filters', 'importalias', 'login', 'bootstrap', 'angular'], function($, filters, importalias) {
-	$.each(filters, function(filtername, filter) {
-		importalias.filter(filtername, filter);
-	})
-	angular.bootstrap(document, ['login', 'importalias']);
+requirejs(['underscore', 'angular', 'filters', 'importalias'], function(_, angular, filters, importalias) {
+	_.each(filters, function(filter, name) {
+		importalias.filter(name, filter);
+	});
+	angular.bootstrap(document, ['importalias']);
 });
 

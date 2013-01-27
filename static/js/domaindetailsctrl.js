@@ -1,4 +1,4 @@
-define(['jquery', 'config', 'angular'], function($, config) {
+define(['bootstrap', 'config'], function($, config) {
 	return function($scope, $routeParams, $http) {
 		$scope.domain = $routeParams.domain;
 		$scope.aliases = [];
