@@ -265,6 +265,33 @@ func TestSetAlias(t *testing.T) {
 	}
 }
 
+func TestUpdateAlias(t *testing.T) {
+	c := dmgr_setup()
+	defer dmgr_teardown(c, t)
+
+	mgr := DomainManager(&MongoDomainManager{c})
+	uid := gouuid.New()
+	mgr.ClaimDomain("gotest.org", &uid)
+
+	expected := []*Alias{
+		&Alias{
+			RepoURL:    "repo1",
+			RepoType:   "git",
+			ForwardURL: "old_homepage",
+			Alias:      "alias1",
+		},
+	}
+	mgr.SetAlias("gotest.org", expected[0], &uid)
+	expected[0].ForwardURL = "homepage1"
+	mgr.SetAlias("gotest.org", expected[0], &uid)
+
+	domain := Domain{}
+	c.Find(bson.M{}).One(&domain)
+	if !reflect.DeepEqual(domain.Aliases, expected) {
+		t.Fatalf("Unexpected domain data. Got %#v, expected %#v", domain.Aliases, expected)
+	}
+}
+
 func TestWrongSetAlias(t *testing.T) {
 	c := dmgr_setup()
 	defer dmgr_teardown(c, t)

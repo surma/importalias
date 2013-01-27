@@ -59,9 +59,19 @@ func (mdm *MongoDomainManager) DomainsByOwner(uid *gouuid.UUID) ([]*Domain, erro
 }
 
 func (mdm *MongoDomainManager) SetAlias(name string, alias *Alias, uid *gouuid.UUID) error {
+	// Update
+	if alias.ID != nil {
+		return mdm.Collection.Update(bson.M{
+			"aliases.id": alias.ID,
+		}, bson.M{
+			"$set": bson.M{
+				"aliases.$": alias,
+			},
+		})
+	}
 	aid := gouuid.New()
 	alias.ID = &aid
-	err := mdm.Collection.Update(bson.M{
+	return mdm.Collection.Update(bson.M{
 		"name":   name,
 		"owners": uid,
 	}, bson.M{
@@ -69,7 +79,6 @@ func (mdm *MongoDomainManager) SetAlias(name string, alias *Alias, uid *gouuid.U
 			"aliases": alias,
 		},
 	})
-	return err
 }
 
 func (mdm *MongoDomainManager) DeleteAlias(aid *gouuid.UUID, uid *gouuid.UUID) error {
