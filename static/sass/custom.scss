@@ -1,3 +1,26 @@
 li#userdata > ul > li  {
 	padding: 3px 20px;
 }
+
+body > footer {
+	text-align: center;
+	a {
+		color: inherit;
+		&:before {
+			content: '[';
+		}
+		&:after {
+			content: ']';
+		}
+	}
+	ul {
+		list-stype-type: none;
+		li {
+			display: inline;
+			margin: 0;
+			&:not(:last-child):after {
+				content: '•';
+			}
+		}
+	}
+}
