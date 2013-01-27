@@ -5,7 +5,6 @@
 		<tr>
 			<th>Alias</th>
 			<th>Repository</th>
-			<th>Forward</th>
 			<th>Actions</th>
 		</tr>
 	</thead>
@@ -13,14 +12,12 @@
 		<tr ng-repeat="alias in aliases">
 			<td><span class="muted">{{domain}}</span>{{alias.alias}}</td>
 			<td><span class="muted">({{alias.repo_type}}:)&nbsp;</span>{{alias.repo_url}}</td>
-			<td><a href="{{alias.forward_url}}" target="_blank">{{alias.forward_url}}</a></td>
 			<td>
 				<a href="" class="btn btn-primary" ng-click="openAliasDialog(alias)"><i class="icon-edit icon-white"></i></a>
 				<a href="" class="btn btn-danger" ng-click="deleteAlias(alias.id)"><i class="icon-trash icon-white"></i></a>
 			</td>
 		</tr>
 		<tr>
-			<td></td>
 			<td></td>
 			<td></td>
 			<td>
