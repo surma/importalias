@@ -5,7 +5,7 @@ Root: `/api/v1`
 
 #### Authentication
 Authentication is done via basic auth which has to be your
-[API-Key](http://notthereyet.com).
+[API-Key](http://importalias.surmair.de/#/wtf).
 
 #### /me
 ##### GET /me
