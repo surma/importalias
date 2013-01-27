@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -18,6 +19,7 @@ func (m *Metapage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
 		domain, err := m.domainmgr.FindDomain(r.Host)
 		if err != nil {
+			log.Printf("Unknown domain: %s", r.Host)
 			http.Redirect(w, r, "http://"+options.Hostname+"/unknown", http.StatusMovedPermanently)
 			return
 		}
@@ -27,6 +29,7 @@ func (m *Metapage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	alias, err := m.domainmgr.FindAlias(r.Host, r.URL.Path)
 	if err != nil {
+		log.Printf("Unknown alias: %s|%s", r.Host, r.URL.Path)
 		http.Redirect(w, r, "http://"+options.Hostname+"/unknown", http.StatusMovedPermanently)
 		return
 	}

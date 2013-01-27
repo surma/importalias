@@ -67,7 +67,7 @@ func (api *APIv1) GetDomains(w http.ResponseWriter, r *http.Request) {
 	uid := context.Get(r, "uid").(*gouuid.UUID)
 	domains, err := api.domainmgr.DomainsByOwner(uid)
 	if err != nil {
-		log.Printf("Could not list domains: %s", err)
+		log.Printf("Could not list domains of %s: %s", uid, err)
 		http.Error(w, "Could not list domains", http.StatusInternalServerError)
 		return
 	}
@@ -101,10 +101,11 @@ func (api *APIv1) ClaimDomain(w http.ResponseWriter, r *http.Request) {
 
 	err = api.domainmgr.ClaimDomain(vars["domain"], uid)
 	if err == ErrAlreadyClaimed {
+		log.Printf("Domain %s alread claimed", vars["domain"])
 		http.Error(w, "Domain already claimed", http.StatusForbidden)
 		return
 	} else if err != nil {
-		log.Printf("Could not claim domain: %s", err)
+		log.Printf("Could not claim domain %s: %s", vars["domain"], err)
 		http.Error(w, "Could not claim domain", http.StatusInternalServerError)
 		return
 	}
@@ -133,6 +134,7 @@ func (api *APIv1) DeleteDomain(w http.ResponseWriter, r *http.Request) {
 	uid := context.Get(r, "uid").(*gouuid.UUID)
 	err := api.domainmgr.DeleteDomain(vars["domain"], uid)
 	if err != nil {
+		log.Printf("Could not delete domain %s: %s", vars["domain"], err)
 		http.Error(w, "Could not delete domain", http.StatusInternalServerError)
 		return
 	}
@@ -145,6 +147,7 @@ func (api *APIv1) ListAliases(w http.ResponseWriter, r *http.Request) {
 
 	domain, err := api.domainmgr.FindDomain(vars["domain"])
 	if err != nil || !domain.IsOwnedBy(uid) {
+		log.Printf("Could not find domain %s: %s", vars["domain"], err)
 		http.Error(w, "Could not find domain", http.StatusNotFound)
 		return
 	}
@@ -160,12 +163,14 @@ func (api *APIv1) SetAlias(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(alias)
 	if err != nil {
+		log.Printf("Invalid alias object: %s", err)
 		http.Error(w, "Invalid alias object", http.StatusBadRequest)
 		return
 	}
 
 	err = api.domainmgr.SetAlias(vars["domain"], alias, uid)
 	if err != nil {
+		log.Printf("Could not add alias to %s: %s", vars["domain"], err)
 		http.Error(w, "Could not add alias", http.StatusNotFound)
 		return
 	}
@@ -180,12 +185,14 @@ func (api *APIv1) DeleteAlias(w http.ResponseWriter, r *http.Request) {
 
 	aid, err := gouuid.ParseString(vars["aid"])
 	if err != nil {
+		log.Printf("Invalid id: %s", vars["aid"])
 		http.Error(w, "Invalid id format", http.StatusNotFound)
 		return
 	}
 
 	err = api.domainmgr.DeleteAlias(&aid, uid)
 	if err != nil {
+		log.Printf("Could not delete alias %s: %s", vars["aid"], err)
 		http.Error(w, "Could not delete alias", http.StatusNotFound)
 		return
 	}
