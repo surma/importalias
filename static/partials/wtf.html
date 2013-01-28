@@ -1,84 +1,65 @@
 <h1>About</h1>
 <p>
-	<a href="http://golang.org/cmd/go/#hdr-Remote_import_path_syntax">Vanity remote import paths</a>
-	(as they are called in the reference) have been implemented for a while,
-	but do not seem to be used that often. I assume this is because you need to maintain an
-	HTML header section. This is what ImportAlias will do <em>for</em> you.
+	<a href="http://golang.org/cmd/go/#hdr-Remote_import_path_syntax">Vanity remote import paths</a> (as they are called in the <a href="http://golang.org">Golang</a> reference) have been implemented for a while, but do not seem to be used that often. I assume this is because you need to maintain an HTML header section. This is what ImportAlias will do <em>for</em> you.
 </p>
-<h2>Getting started</h2>
-<p>
-	I tried to keep the overhead as small as possible. You don't need to remember any credentials, I only
-	offer 3rd party login. Right now I support <a href="http://github.com">GitHub</a> and
-	<a href="http://google.com">Google</a>. Just click the Login button in the top right corner.
-</p>
-<p>
-	Before you can add an alias route, you need to <em>claim</em> a domain.
-	Right now a domain can be managed by one person (one account) only. The architecture
-	has been designed to support delegates, but the functionality has not been exposed just yet.
-</p>
-<p>
-	To verify that you are actually the owner of the domain you are about to claim,
-	a DNS request is made to check if said domain contains a TXT record containung
-	your UID. The DNS request is made against <a href="https://developers.google.com/speed/public-dns/">Google’s DNS</a>
-	and not resolved manually so give the record some time to propagate.
-</p>
-<p>
-	To make ImportAlias actually work, another DNS record is needed: A CNAME record
-	which points to <code>importalias.surmair.de</code>. This way, all requests
-	sent to that domain will be handled by the ImportAlias app.
-</p>
-<p class="well">
-	<span class="badge badge-info">Example:</span> Let’s assume you want to claim
-	the domain <code>go.example.com</code>. Go to your DNS provider and make an entry
-	for <code>_importalias.go.example.com</code> and set the content to your UID. You
-	can find your UID (as well as your personal API key) in the dropdown in the
-	navigation bar at the top. Also add a CNAME record for <code>go.example.com</code>
-	and let it point to <code>importalias.surmair.de</code>.
-</p>
-<p>
-	Now that you have your domain set up you can add aliases. For each alias, the
-	following information is required:
-	<dl class="well">
-		<dt>Alias</dt>
-		<dd>
-			The path which should be aliased for a remote repository. It may contain multiples slashes.
-		</dd>
-		<dt>Repository</dt>
-		<dd>
-			Type and URL of said repository. At the moment Git, Mercurial and Bazaar
-			are supported by <code>go get</code>.
-		</dd>
-		<dt>Forward URL</dt>
-		<dd>
-			The URL to forward to when it is accessed by something else than <code>go get</code> (e.g. a browser).
-		</dd>
-	</dl>
-</p>
+<h2>Quickstart</h2>
+<ol>
+	<li>
+		<p>
+			<strong>Login:</strong> I tried to keep the overhead as small as possible. You don't need to remember any credentials, I only offer 3rd party login anyway. Right now I support <a href="http://github.com"><strong>GitHub</strong></a> and <a href="http://google.com"><strong>Google</strong></a>. Just click the Login button in the top right corner.
+		</p>
+	</li>
+	<li>
+		<p>
+			<strong>Domain claiming:</strong> Before you can add an alias, you need to <em>claim</em> a domain. Right now a domain can be managed by one person (one account) only. The architecture has been designed to support delegates, but the functionality has not been exposed just yet.
+		</p>
+		<p>
+			To verify that you are actually the owner of the domain you are about to claim, a DNS request is made to check if said domain contains a <strong>TXT record</strong> containung your User ID (<em>UID</em>). The DNS request is made against <a href="https://developers.google.com/speed/public-dns/">Google’s DNS</a> and not resolved manually so give the record some time to propagate.
+		</p>
+		<p>
+			To make ImportAlias actually work, another DNS record is needed: A <strong>CNAME record</strong> which points to <code>importalias.surmair.de</code>. This way, all requests sent to that domain will be handled by the ImportAlias app.
+		</p>
+		<p class="well">
+			<span class="badge badge-info">Example:</span> Let’s assume you want to claim the domain <code>go.example.com</code>. Go to your DNS provider and create a TXT record for <code>_importalias.go.example.com</code> and set the content to your UID. You can find your UID (as well as your personal API key) in the dropdown in the navigation bar at the top. Additionaly set a CNAME record for <code>go.example.com</code> and let it point to <code>importalias.surmair.de</code>.
+		</p>
+	</li>
+	<li>
+		<p>
+			<strong>Aliases:</strong> Now that you have your domain set up you can add aliases. For each alias, the following information is required:
+			<dl class="well">
+				<dt>Alias</dt>
+				<dd>
+					The path which should be aliased for a remote repository. It may contain multiples slashes.
+				</dd>
+				<dt>Repository</dt>
+				<dd>
+					Type and URL of said repository. At the moment Git, Mercurial and Bazaar are supported by <code>go get</code>.
+				</dd>
+				<dt>Forward URL</dt>
+				<dd>
+					The URL to forward to when it is accessed by something else than <code>go get</code> (e.g. a browser).
+				</dd>
+			</dl>
+		</p>
+	</li>
+</ol>
 <h2>Alpha</h2>
 <p>
-	<span class="badge badge-important">Important:</span> I give this service the “alpha stage” mark.
-	Nothing has been tested in the wild and I will not give any guarantees. If you rely on your Go imports
-	and need them to work 24/7, do not use this service just yet. On the contrary: Try to break it, do
-	weird stuff, use the API.
+	<span class="badge badge-important">Important:</span> I give this service the “alpha stage” mark. Nothing has been tested in the wild and I will not give any guarantees. If you rely on your Go imports and need them to work 24/7, do not use this service just yet. On the contrary: I want you to try to break it, do weird stuff, use the <a href="https://github.com/surma/importalias/blob/master/API.md">API</a> (<em>*gasp*</em>).
 </p>
 <p>
 	Also: What are you doing that you need your imports to work 24/7?!
 </p>
 <h2>The name</h2>
 <p>
-	The name sucks badly, I know. But my ideas are either really boring or have no connection whatsoever
-	to the project. If you happen to have a suggestion, <a href="mailto:surma@surmair.de">drop me a line</a>.
-	I am grateful for any idea.
+	The name sucks badly, I know. But my ideas are either really boring or have no connection to the project. If you happen to have a suggestion, <a href="mailto:surma@surmair.de">drop me a line</a>. I am grateful for any ideas.
 </p>
 <h2>The code</h2>
 <p>
-	The entire source code is licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License 2.0</a>
-	and can be found at <a href="http://github.com/surma/importalias">GitHub</a>. Issues and Pull Requests welcome.
+	The entire source code is licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License 2.0</a> and can be found at <a href="http://github.com/surma/importalias">GitHub</a>. Issues and Pull Requests welcome.
 </p>
 
 <h2>Me</h2>
 <p>
-	I am <a href="http://gplus.to/surmair">Alexander “Surma” Surma</a>. If you have
-	any questions, feel free to contact me via <a href="mailto:surma@surmair.de">E-Mail</a>,
-	<a href="http://twitter.com/surmair">Twitter</a> or <a href="http://gplus.to/surmair">G+</a>.
+	I am <a href="http://gplus.to/surmair">Alexander “Surma” Surma</a>. If you have any questions, feel free to contact me via <a href="mailto:surma@surmair.de">E-Mail</a>, <a href="http://twitter.com/surmair">Twitter</a> or <a href="http://gplus.to/surmair">G+</a>.
 </p>
