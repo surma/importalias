@@ -1,0 +1,57 @@
+@import "compass/css3/transform";
+@import "compass/css3/opacity";
+
+body {
+	padding-top: 70px;
+}
+
+li#userdata > ul > li  {
+	padding: 3px 20px;
+}
+
+.navbar .brand {
+	position: relative;
+	&:after {
+		position: relative;
+		float: right;
+		top: -10px;
+		left: -5px;
+		display: block;
+		content: 'α';
+		font-size: 150%;
+		@include rotate(30deg);
+		color: red;
+		@include opacity(0.8);
+	}
+}
+
+.navbar .logins img {
+	margin-right: 5px;
+}
+
+.modal {
+	left: 40% !important;
+}
+
+body > footer {
+	text-align: center;
+	a {
+		color: inherit;
+		&:before {
+			content: '[';
+		}
+		&:after {
+			content: ']';
+		}
+	}
+	ul {
+		list-stype-type: none;
+		li {
+			display: inline;
+			margin: 0;
+			&:not(:last-child):after {
+				content: '•';
+			}
+		}
+	}
+}
