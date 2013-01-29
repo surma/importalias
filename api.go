@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/surma-dump/context"
@@ -82,20 +83,20 @@ func (api *APIv1) GetDomains(w http.ResponseWriter, r *http.Request) {
 
 func (api *APIv1) ClaimDomain(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	domain := dns.Fqdn("_importalias." + vars["domain"])
+	uid := context.Get(r, "uid").(*gouuid.UUID)
+	domain := dns.Fqdn(vars["domain"])
 	m := new(dns.Msg)
-	m.SetQuestion(domain, dns.TypeTXT)
+	m.SetQuestion(domain, dns.TypeCNAME)
 	c := new(dns.Client)
 	rr, _, err := c.Exchange(m, "8.8.8.8:53")
 	if err != nil {
-		log.Printf("Could not check domain’s TXT record: %s", err)
-		http.Error(w, "Could not check domain’s TXT record", http.StatusInternalServerError)
+		log.Printf("Could not check domain’s records: %s", err)
+		http.Error(w, "Could not check domain’s records", http.StatusInternalServerError)
 		return
 	}
 
-	uid := context.Get(r, "uid").(*gouuid.UUID)
-	if !containsValidTXTRecord(uid, rr.Answer) {
-		http.Error(w, "Did not find your UID in domain’s TXT records", http.StatusUnauthorized)
+	if !containsValidCNAMERecord(uid, rr.Answer) {
+		http.Error(w, "Did not find your UID in domain’s CNAME records", http.StatusUnauthorized)
 		return
 	}
 
@@ -112,17 +113,16 @@ func (api *APIv1) ClaimDomain(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "", http.StatusNoContent)
 }
 
-func containsValidTXTRecord(uid *gouuid.UUID, rr []dns.RR) bool {
+func containsValidCNAMERecord(uid *gouuid.UUID, rr []dns.RR) bool {
 	for _, record := range rr {
-		if txtr, ok := record.(*dns.TXT); ok {
-			for _, txt := range txtr.Txt {
-				txtuid, err := gouuid.ParseString(txt)
-				if err != nil {
-					continue
-				}
-				if txtuid.Equal(*uid) {
-					return true
-				}
+		if cname, ok := record.(*dns.CNAME); ok {
+			elems := strings.Split(cname.Target, ".")
+			cnameuid, err := gouuid.ParseString(elems[0])
+			if err != nil {
+				continue
+			}
+			if cnameuid.Equal(*uid) {
+				return true
 			}
 		}
 	}
