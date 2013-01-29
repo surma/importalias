@@ -2,18 +2,19 @@
 /* line 4, ../sass/custom.scss */
 body {
   padding-top: 70px;
+  padding-bottom: 20px;
 }
 
-/* line 7, ../sass/custom.scss */
+/* line 9, ../sass/custom.scss */
 li#userdata > ul > li {
   padding: 3px 20px;
 }
 
-/* line 11, ../sass/custom.scss */
+/* line 13, ../sass/custom.scss */
 .navbar .brand {
   position: relative;
 }
-/* line 13, ../sass/custom.scss */
+/* line 15, ../sass/custom.scss */
 .navbar .brand:after {
   position: relative;
   float: right;
@@ -32,42 +33,54 @@ li#userdata > ul > li {
   opacity: 0.8;
 }
 
-/* line 27, ../sass/custom.scss */
+/* line 29, ../sass/custom.scss */
 .navbar .logins img {
   margin-right: 5px;
 }
 
-/* line 31, ../sass/custom.scss */
+/* line 33, ../sass/custom.scss */
 .modal {
   left: 40% !important;
 }
 
-/* line 35, ../sass/custom.scss */
+/* line 37, ../sass/custom.scss */
+.sponsor {
+  display: inline-block;
+  margin-top: 0;
+}
+/* line 40, ../sass/custom.scss */
+.sponsor img {
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 5px;
+}
+
+/* line 46, ../sass/custom.scss */
 body > footer {
   text-align: center;
 }
-/* line 37, ../sass/custom.scss */
-body > footer a {
+/* line 48, ../sass/custom.scss */
+body > footer p a, body > footer ul a {
   color: inherit;
 }
-/* line 39, ../sass/custom.scss */
-body > footer a:before {
+/* line 50, ../sass/custom.scss */
+body > footer p a:before, body > footer ul a:before {
   content: '[';
 }
-/* line 42, ../sass/custom.scss */
-body > footer a:after {
+/* line 53, ../sass/custom.scss */
+body > footer p a:after, body > footer ul a:after {
   content: ']';
 }
-/* line 46, ../sass/custom.scss */
+/* line 57, ../sass/custom.scss */
 body > footer ul {
+  margin: 0;
   list-stype-type: none;
 }
-/* line 48, ../sass/custom.scss */
+/* line 60, ../sass/custom.scss */
 body > footer ul li {
   display: inline;
   margin: 0;
 }
-/* line 51, ../sass/custom.scss */
+/* line 63, ../sass/custom.scss */
 body > footer ul li:not(:last-child):after {
   content: '•';
 }
