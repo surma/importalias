@@ -4,8 +4,8 @@ aim is to keep the necessary effort to maintain your aliases to a
 minimum.
 
 ## Requirements
-The whole apps works on a single [MongoDB][3] database. Due to
-certain query techniques (like `$elemMatch` projections), a
+The whole apps works on a [MongoDB][3] database. Due to
+certain query techniques (like `$elemMatch` projections),
 MongoDB 2.2 is needed.
 
 ## Quick start
@@ -22,7 +22,7 @@ For local development, I usually start the app like this:
   for [OAuth 2.0][4] login.
 * `--cookie-key` is the 32-digit hex key used to sign the cookie based
   sessions.
-* `--auth-config` contains the configuration for OAuth providers.
+* `--auth-config` contains the configuration (endpoints etc.) for OAuth providers.
 
 For additional flags, set the `--help` flag.
 
@@ -32,4 +32,4 @@ For additional flags, set the `--help` flag.
 [4]: http://oauth.net/
 
 ---
-Version 1.0.0
+Version 1.1.0

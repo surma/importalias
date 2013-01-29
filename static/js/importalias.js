@@ -23,6 +23,9 @@ define(['angular', 'domainlistctrl', 'domaindetailsctrl', 'notificationctrl', 'l
 				templateUrl: 'partials/domaindetails.html',
 				controller: domaindetailsctrl
 			})
+			.when('/unknown', {
+				templateUrl: 'partials/unknown.html'
+			})
 			.otherwise({redirectTo: '/'});
 		});
 		return importalias;

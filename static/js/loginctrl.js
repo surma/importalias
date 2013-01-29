@@ -22,7 +22,7 @@ define(['underscore', 'config'], function(_, config) {
 				});
 			});
 		};
-		var refreshUser = function() {
+		var refreshUser = function(redirect) {
 			$http.get(config.ApiEndpoint + '/me')
 			.success(function(data) {
 				$scope.user = data;
@@ -30,7 +30,9 @@ define(['underscore', 'config'], function(_, config) {
 			})
 			.error(function() {
 				$scope.user = null;
-				$location.path('/');
+				if(redirect) {
+					$location.path('/');
+				}
 			})
 			.then(function() {
 				$scope.dropDownOpen = false;
@@ -43,7 +45,7 @@ define(['underscore', 'config'], function(_, config) {
 
 		window.addEventListener('message', function(event) {
 			if(event.data == 'auth_done') {
-				refreshUser();
+				refreshUser(true);
 			}
 		}, false);
 		refresh();

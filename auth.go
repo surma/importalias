@@ -93,35 +93,24 @@ func (a *OAuthAuthenticator) authCallbackHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	uid, ok := context.Get(r, "uid").(*gouuid.UUID)
-	// Already authenticated, add new authenticator
-	if ok && uid != nil {
-		err := a.usermgr.AddAuthenticator(uid, a.authname, id)
+	// Login
+	user, err := a.usermgr.FindByAuthenticator(a.authname, id)
+	if err != nil && err != ErrUserNotFound {
+		log.Printf("Could not query user database: %s", err)
+		http.Error(w, "Could not query user database", http.StatusInternalServerError)
+		return
+	} else if err == ErrUserNotFound {
+		// New user
+		user, err = a.usermgr.New(a.authname, id)
 		if err != nil {
-			log.Printf("Creating user failed: %s", err)
-			http.Error(w, "Could not create user", http.StatusInternalServerError)
+			log.Printf("Error creating user: %s", err)
+			http.Error(w, "Error creating user", http.StatusInternalServerError)
 			return
 		}
-	} else {
-		// Login
-		user, err := a.usermgr.FindByAuthenticator(a.authname, id)
-		if err != nil && err != ErrUserNotFound {
-			log.Printf("Could not query user database: %s", err)
-			http.Error(w, "Could not query user database", http.StatusInternalServerError)
-			return
-		} else if err == ErrUserNotFound {
-			// New user
-			user, err = a.usermgr.New(a.authname, id)
-			if err != nil {
-				log.Printf("Error creating user: %s", err)
-				http.Error(w, "Error creating user", http.StatusInternalServerError)
-				return
-			}
-		}
-		session := context.Get(r, "session").(*sessions.Session)
-		session.Values["uid"] = user.UID
-		session.Save(r, w)
 	}
+	session := context.Get(r, "session").(*sessions.Session)
+	session.Values["uid"] = user.UID
+	session.Save(r, w)
 	CALLBACK_TEMPLATE.Execute(w, nil)
 }
 

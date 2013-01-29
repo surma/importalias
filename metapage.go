@@ -33,7 +33,7 @@ func (m *Metapage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	alias, err := m.domainmgr.FindAlias(r.Host, r.URL.Path)
 	if err != nil {
 		log.Printf("Unknown alias %s|%s: %s", r.Host, r.URL.Path, err)
-		http.Redirect(w, r, "http://"+options.Hostname+"/unknown", http.StatusMovedPermanently)
+		http.Redirect(w, r, "http://"+options.Hostname+"/#/unknown", http.StatusMovedPermanently)
 		return
 	}
 
