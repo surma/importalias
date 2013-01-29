@@ -14,9 +14,8 @@ Show your API-Key and your user ID
 #### /domains
 ##### POST /domains/[domain]
 Claim a domain. If this call succeedes, you can manage this domain’s
-aliases. The server will look for a TXT-Record on this domain’s DNS
-which has to be names `_importalias.[domain]` and has to contain
-your user ID.
+aliases. The server will look for a CNAME-Record on this domain’s DNS
+which has to point to `[your UID].importalias.surmair.de`.
 Returns: 204 on success
 
 ##### GET /domains/
