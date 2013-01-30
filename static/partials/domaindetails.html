@@ -39,33 +39,43 @@
     <h3>Add an alias</h3>
   </div>
   <div class="modal-body">
-  	<form class="form-horizontal well">
+  	<form name="newAliasForm" class="form-horizontal well">
   		<div class="control-group">
   			<label class="control-label">Alias:</label>
   			<div class="controls">
-	  			{{domain}}<input type="text" ng-model="alias.alias" placeholder="/stacksignal" required/>
+	  			<input type="text" name="alias" ng-model="alias.alias" placeholder="/stacksignal" path/>
+				<div>
+					&nbsp;<small ng-show="newAliasForm.alias.$invalid">Please enter a valid path that starts with a slash</small>
+				</div>
 	  		</div>
 	  	</div>
   		<div class="control-group">
   			<label class="control-label">Repository ({{alias.repo_type}}):</label>
   			<div class="controls">
-  				<select ng-model="alias.repo_type">
+  				<select ng-model="alias.repo_type" name="repo_type" required>
   					<option value="git" selected>Git</option>
   					<option value="hg">Mercurial</option>
   					<option value="bzr">Bazaar</option>
   				</select>
-	  			<input type="text" ng-model="alias.repo_url" placeholder="http://github.com/surma/stacksignal" required/>
+	  			<input type="url" ng-model="alias.repo_url" name="repo_url" placeholder="http://github.com/surma/stacksignal" required/>
+				<div>
+					&nbsp;<small ng-show="newAliasForm.repo_url.$invalid">Please enter a valid URL</small>
+				</div>
 	  		</div>
 	  	</div>
   		<div class="control-group">
   			<label class="control-label">Forward URL:</label>
   			<div class="controls">
-	  			<input type="text" ng-model="alias.forward_url" placeholder="http://www.surmair.de/" required/>
+	  			<input type="url" ng-model="alias.forward_url" name="forward_url" placeholder="http://www.surmair.de/" required/>
+				<div>
+					&nbsp;<small ng-show="newAliasForm.forward_url.$invalid">Please enter a valid URL</small>
+				</div>
 	  		</div>
 	  	</div>
+	  	<div class="pull-right">
+			<button class="btn btn-danger" data-dismiss="modal">Cancel</button>
+			<button class="btn btn-primary" ng-disabled="newAliasForm.$invalid" ng-click="saveNewAlias()">Save</button>
+		</div>
+		<div class="clearfix"></div>
   	</form>
-	<div class="modal-footer">
-		<a class="btn btn-danger" data-dismiss="modal">Cancel</a>
-		<a class="btn btn-primary" ng-click="saveNewAlias()">Save</a>
-	</div>
 </div>
