@@ -5,6 +5,7 @@ requirejs.config({
     	'jquery': '/js/vendor/jquery-1.8.3.min',
     	'bootstrap': '/js/vendor/bootstrap',
         'underscore': '/js/vendor/underscore',
+        'parsley': '/js/vendor/parsley.min',
     },
     shim: {
         'underscore': {
@@ -18,6 +19,9 @@ requirejs.config({
             deps: ['jquery'],
             exports: 'angular',
         },
+        'parsley': {
+            deps: ['jquery'],
+        }
     },
 });
 

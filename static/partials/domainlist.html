@@ -32,11 +32,11 @@ Only domains you have claimed can be managed by you.</p>
   </div>
   <div class="modal-body">
   	<p>Please enter the domain you want to claim:</p>
-  	<form class="form-horizontal well">
+  	<form class="form-horizontal well" data-validate="parsley">
   		<div class="control-group">
   			<label class="control-label">Domainname:</label>
   			<div class="controls">
-	  			<input type="text" ng-model="newDomainName" placeholder="go.example.com" required/>
+	  			<input type="text" ng-model="newDomainName" placeholder="go.example.com" data-range="[8, 10]" data-message="Please enter a valid hostname" required/>
 	  		</div>
 	  	</div>
   	</form>

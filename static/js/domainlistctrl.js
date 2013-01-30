@@ -1,4 +1,4 @@
-define(['bootstrap', 'config'], function($, config) {
+define(['bootstrap', 'config', 'parsley'], function($, config, parsley) {
 	return function($scope, $http, $location) {
 		$scope.newDomainName = "";
 		$scope.domains = [];
@@ -6,6 +6,14 @@ define(['bootstrap', 'config'], function($, config) {
 		$scope.openNewDomainDialog = function() {
 			dialog.modal({
 				backdrop: false,
+			})
+			.on('hidden', function() {
+				console.log('hidden');
+				$('form').parsley('destroy');
+			})
+			.on('shown', function() {
+				console.log('shown');
+				$('form').parsley();
 			});
 		};
 		$scope.saveNewDomain = function() {
