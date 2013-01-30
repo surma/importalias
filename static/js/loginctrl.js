@@ -22,15 +22,17 @@ define(['underscore', 'config'], function(_, config) {
 				});
 			});
 		};
-		var refreshUser = function(redirect) {
+		var refreshUser = function(stateChange) {
 			$http.get(config.ApiEndpoint + '/me')
 			.success(function(data) {
 				$scope.user = data;
-				window.notify('success', 'Logged in');
+				if(stateChange) {
+					window.notify('success', 'Logged in');
+				}
 			})
 			.error(function() {
 				$scope.user = null;
-				if(redirect) {
+				if(stateChange) {
 					$location.path('/');
 				}
 			})
