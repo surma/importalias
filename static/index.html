@@ -26,7 +26,8 @@
         <div class="navbar-inner">
             <a class="brand" href="#">ImportAlias</a>
             <ul class="nav">
-                <li><a href="#/wtf">About</a></li>
+                <li><a href="#/quickstart">Quickstart</a></li>
+                <li><a href="#/wtf">Details</a></li>
             </ul>
             <ul class="nav pull-right">
                 <li ng-show="isLoggedIn()"><a href="#/domains">Domains</a></li>
@@ -42,7 +43,7 @@
                 </li>
                 <li id="userdata" class="dropdown" ng-show="isLoggedIn()" ng-class='{open: dropDownOpen}'>
                     <a class="dropdown-toggle" ng-click='dropDownOpen=!dropDownOpen'>
-                            User <b class="caret"></b>
+                            Account <b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu">
                         <li>
