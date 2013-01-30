@@ -27,9 +27,9 @@
             <a class="brand" href="#">ImportAlias</a>
             <ul class="nav">
                 <li><a href="#/wtf">About</a></li>
-                <li ng-show="isLoggedIn()"><a href="#/domains">Domains</a></li>
             </ul>
             <ul class="nav pull-right">
+                <li ng-show="isLoggedIn()"><a href="#/domains">Domains</a></li>
                 <li class="dropdown" ng-hide="isLoggedIn()" ng-class='{open: dropDownOpen}'>
                     <a class="dropdown-toggle" ng-click='dropDownOpen=!dropDownOpen'>
                             Login <b class="caret"></b>
