@@ -216,3 +216,20 @@ func BasicAuth(umgr UserManager) http.Handler {
 		context.Set(r, "uid", user.UID)
 	})
 }
+
+
+func authListHandler(auths *AuthList) http.Handler {
+	authnames := make([]string, 0, len(*auths))
+	for name, authconfig := range *auths {
+		if authconfig.AuthKey != nil {
+			authnames = append(authnames, name)
+		}
+	}
+	authlist, err := json.Marshal(authnames)
+	if err != nil {
+		panic("Could not create auth list handler: "+err.Error())
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write(authlist)
+	})
+}
