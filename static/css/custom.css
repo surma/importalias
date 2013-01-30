@@ -12,6 +12,10 @@ li#userdata > ul > li {
   text-align: justify;
 }
 
+.navbar .navbar-inner {
+  padding-left: 10px;
+  padding-right: 10px;
+}
 .navbar .brand {
   position: relative;
 }
