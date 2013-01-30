@@ -10,19 +10,29 @@ li#userdata > ul > li  {
 	padding: 3px 20px;
 }
 
-.navbar .brand {
-	position: relative;
-	&:after {
+.justify {
+	text-align: justify;
+}
+
+.navbar {
+	.navbar-inner {
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+	.brand {
 		position: relative;
-		float: right;
-		top: -10px;
-		left: -5px;
-		display: block;
-		content: 'α';
-		font-size: 150%;
-		@include rotate(30deg);
-		color: red;
-		@include opacity(0.8);
+		&:after {
+			position: relative;
+			float: right;
+			top: -10px;
+			left: -5px;
+			display: block;
+			content: 'α';
+			font-size: 150%;
+			@include rotate(30deg);
+			color: red;
+			@include opacity(0.8);
+		}
 	}
 }
 

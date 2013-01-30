@@ -103,9 +103,7 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 				http.StripPrefix(prefix.Path, auth),
 			}))
 	}
-	authrouter.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`["google", "github"]`))
-	})
+	authrouter.Handle("/", authListHandler(options.AuthConfigs))
 	authrouter.Path("/logout").Handler(
 		context.ClearHandler(HandlerList{
 			SilentHandler(SessionHandler(options.SessionStore, int(options.SessionTTL/time.Second))),

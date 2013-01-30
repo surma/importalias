@@ -3,6 +3,8 @@ as offerd by the `go` tool of the [Go programming language][2]. Its
 aim is to keep the necessary effort to maintain your aliases to a
 minimum.
 
+[![Build Status](https://drone.io/github.com/surma/importalias/status.png)](https://github.com/surma/importalias/latest)
+
 ## Requirements
 The whole apps works on a [MongoDB][3] database. Due to
 certain query techniques (like `$elemMatch` projections),
@@ -32,4 +34,4 @@ For additional flags, set the `--help` flag.
 [4]: http://oauth.net/
 
 ---
-Version 1.1.0
+Version 1.1.1

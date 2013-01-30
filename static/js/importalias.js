@@ -12,6 +12,9 @@ define(['angular', 'domainlistctrl', 'domaindetailsctrl', 'notificationctrl', 'l
 			.when('/wtf', {
 				templateUrl: 'partials/wtf.html'
 			})
+			.when('/quickstart', {
+				templateUrl: 'partials/quickstart.html'
+			})
 			.when('/legal', {
 				templateUrl: 'partials/legal.html'
 			})

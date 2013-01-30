@@ -12,41 +12,47 @@ Only domains you have claimed can be managed by you.</p>
 		<tr ng-repeat="domain in domains">
 			<td>{{domain}}</td>
 			<td>
-				<a href="#/domains/{{domain}}" class="btn btn-primary"><i class="icon-edit icon-white"></i></a>
+				<a href="#/domains/{{domain}}" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i></a>
 				<a href="" class="btn btn-danger" ng-click="deleteDomain(domain)"><i class="icon-trash icon-white"></i></a>
 			</td>
 		</tr>
 		<tr>
-			<td></td>
 			<td>
 				<a class="btn btn-primary" ng-click="openNewDomainDialog()"><i class="icon-plus icon-white"></i></a>
 			</td>
+			<td></td>
 		</tr>
 	</tbody>
 </table>
 
 <div class="modal fade hide" id="newdomaindialog">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal">&times;</button>
-    <h3>Claim a domain</h3>
-  </div>
-  <div class="modal-body">
-  	<p>Please enter the domain you want to claim:</p>
-  	<form class="form-horizontal well">
-  		<div class="control-group">
-  			<label class="control-label">Domainname:</label>
-  			<div class="controls">
-	  			<input type="text" ng-model="newDomainName" placeholder="go.example.com" required/>
-	  		</div>
-	  	</div>
-  	</form>
-	<p><small><span class="badge badge-important">Important:</span> To claim a domain,
-	you must set a DNS CNAME record for your domain and let it point to <code>[your UID].importalias.surmair.de</code>.
-	If you just added the DNS record, please be patient
-	and waith for the changes to propagate to Google’s DNS.</small></p>
-  </div>
-  <div class="modal-footer">
-    <a class="btn btn-danger" data-dismiss="modal">Cancel</a>
-    <a class="btn btn-primary" ng-click="saveNewDomain()">Save</a>
-  </div>
-</div>
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">&times;</button>
+		<h3>Claim a domain</h3>
+	</div>
+	<div class="modal-body">
+		<form novalidate name="newDomainForm" class="form-horizontal well">
+			<p>Please enter the domain you want to claim:</p>
+			<div class="control-group">
+				<label class="control-label">Domainname:</label>
+				<div class="controls">
+					<input type="text" ng-model="newDomainName" name="newDomainName" placeholder="go.example.com" domain/>
+					<p>
+						&nbsp;<small ng-show="newDomainForm.newDomainName.$invalid">Please enter a valid domain name</small>
+					<p>
+				</div>
+			</div>
+			<div class="pull-right">
+				<button class="btn btn-danger" data-dismiss="modal">Cancel</button>
+				<button class="btn btn-primary" ng-disabled="newDomainForm.$invalid" ng-click="saveNewDomain()">Save</button>
+			</div>
+			<div class="clearfix"></div>
+		</form>
+		<div class="modal-footer justify">
+			<p><small><span class="badge badge-important">Important:</span> To claim a domain,
+				you must set a DNS CNAME record for your domain and let it point to <code>[your UID].importalias.surmair.de</code>.
+				If you just added the DNS record, please be patient
+				and waith for the changes to propagate to Google’s DNS.</small></p>
+			</div>
+		</div>
+	</div>
