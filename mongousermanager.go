@@ -13,6 +13,7 @@ type MongoUserManager struct {
 
 func (mum *MongoUserManager) FindByAuthenticator(authenticator, id string) (*User, error) {
 	user := &User{}
+	mum.Collection.EnsureIndexKey("authenticators")
 	qry := mum.Collection.Find(bson.M{
 		"authenticators." + authenticator: id,
 	})
@@ -25,6 +26,7 @@ func (mum *MongoUserManager) FindByAuthenticator(authenticator, id string) (*Use
 
 func (mum *MongoUserManager) FindByAPIKey(apikey *gouuid.UUID) (*User, error) {
 	user := &User{}
+	mum.Collection.EnsureIndexKey("apikey")
 	qry := mum.Collection.Find(bson.M{
 		"apikey": apikey,
 	})
@@ -37,6 +39,7 @@ func (mum *MongoUserManager) FindByAPIKey(apikey *gouuid.UUID) (*User, error) {
 
 func (mum *MongoUserManager) FindByUID(uid *gouuid.UUID) (*User, error) {
 	user := &User{}
+	mum.Collection.EnsureIndexKey("uid")
 	qry := mum.Collection.Find(bson.M{
 		"uid": uid,
 	})
@@ -60,6 +63,7 @@ func (mum *MongoUserManager) New(authenticator, id string) (*User, error) {
 }
 
 func (mum *MongoUserManager) UpdateUser(u *User) error {
+	mum.Collection.EnsureIndexKey("uid")
 	_, err := mum.Collection.Upsert(bson.M{
 		"uid": u.UID,
 	}, u)
@@ -67,6 +71,7 @@ func (mum *MongoUserManager) UpdateUser(u *User) error {
 }
 
 func (mum *MongoUserManager) AddAuthenticator(uid *gouuid.UUID, authenticator, id string) error {
+	mum.Collection.EnsureIndexKey("uid")
 	return mum.Collection.Update(bson.M{
 		"uid": uid,
 	}, bson.M{

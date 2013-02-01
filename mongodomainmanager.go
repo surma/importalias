@@ -30,6 +30,7 @@ func (mdm *MongoDomainManager) ClaimDomain(name string, uid *gouuid.UUID) error 
 
 func (mdm *MongoDomainManager) FindDomain(name string) (*Domain, error) {
 	domain := &Domain{}
+	mdm.Collection.EnsureIndexKey("name")
 	qry := mdm.Collection.Find(bson.M{
 		"name": name,
 	})
@@ -41,6 +42,7 @@ func (mdm *MongoDomainManager) FindDomain(name string) (*Domain, error) {
 }
 
 func (mdm *MongoDomainManager) DeleteDomain(name string, uid *gouuid.UUID) error {
+	mdm.Collection.EnsureIndexKey("name", "owners")
 	return mdm.Collection.Remove(bson.M{
 		"name":   name,
 		"owners": uid,
@@ -49,6 +51,7 @@ func (mdm *MongoDomainManager) DeleteDomain(name string, uid *gouuid.UUID) error
 
 func (mdm *MongoDomainManager) DomainsByOwner(uid *gouuid.UUID) ([]*Domain, error) {
 	domains := []*Domain{}
+	mdm.Collection.EnsureIndexKey("owners")
 	qry := mdm.Collection.Find(bson.M{
 		"owners": uid,
 	})
@@ -61,6 +64,7 @@ func (mdm *MongoDomainManager) DomainsByOwner(uid *gouuid.UUID) ([]*Domain, erro
 func (mdm *MongoDomainManager) SetAlias(name string, alias *Alias, uid *gouuid.UUID) error {
 	// Update
 	if alias.ID != nil {
+		mdm.Collection.EnsureIndexKey("aliases.id")
 		return mdm.Collection.Update(bson.M{
 			"aliases.id": alias.ID,
 		}, bson.M{
@@ -71,6 +75,7 @@ func (mdm *MongoDomainManager) SetAlias(name string, alias *Alias, uid *gouuid.U
 	}
 	aid := gouuid.New()
 	alias.ID = &aid
+	mdm.Collection.EnsureIndexKey("name", "owners")
 	return mdm.Collection.Update(bson.M{
 		"name":   name,
 		"owners": uid,
@@ -82,6 +87,7 @@ func (mdm *MongoDomainManager) SetAlias(name string, alias *Alias, uid *gouuid.U
 }
 
 func (mdm *MongoDomainManager) DeleteAlias(aid *gouuid.UUID, uid *gouuid.UUID) error {
+	mdm.Collection.EnsureIndexKey("owners", "aliases.id")
 	err := mdm.Collection.Update(bson.M{
 		"owners":     uid,
 		"aliases.id": aid,
@@ -97,6 +103,7 @@ func (mdm *MongoDomainManager) DeleteAlias(aid *gouuid.UUID, uid *gouuid.UUID) e
 
 func (mdm *MongoDomainManager) FindAlias(domain string, alias string) (*Alias, error) {
 	d := &Domain{}
+	mdm.Collection.EnsureIndexKey("name")
 	err := mdm.Collection.Find(bson.M{
 		"name": domain,
 	}).Select(bson.M{
