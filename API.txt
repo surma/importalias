@@ -1,0 +1,131 @@
+HOST: http://importalias.surmair.de/api/v1
+
+--- ImportAlias v1 ---
+--
+Authentication
+Authentication is done via basic auth which has to be your API-Key.
+
+    $ curl -i -X GET --basic http://35e471eae31b47dea51904da97cc0d53@importalias.surmair.de/api/v1/domains
+
+If you make an API request without a valid API key, a 404 will be returned.
+--
+
+--
+User data
+--
+Get user information, i.e. uid and API-key.
+GET /me
+< 200
+{
+    "uid": "e4f242fe654441e99f0d69739a079424",
+    "apikey": "35e471eae31b47dea51904da97cc0d53"
+}
+
+
+--
+Domains
+--
+Get a list of all claimed domains
+GET /domains
+< 200
+[ "some.domain.com" ]
+
+
+Claim a new domain. The server will look for a CNAME record on this domain’s DNS which has to point to `[your UID].importalias.surmair.de`.
+POST /domains/new.domain.com
+< 204
+
+
+Try to claim a new domain without the necessary CNAME record begin present.
+POST /domains/{domainname}
+< 401
+Did not find your UID in domain’s CNAME records
+
+
+Try to claim a domain which has already been claimed.
+POST /domains/some.domain.com
+< 403
+Domain already claimed
+
+
+Delete a domain and all its associated aliases.
+DELETE /domains/some.domain.com
+< 204
+
+
+Try to delete an invalid domain.
+DELETE /domains/{domainname}
+< 500
+Could not delete domain
+
+
+--
+Aliases
+--
+Get a list of all aliases for a domain.
+GET /domains/some.domain.com
+< 200
+[
+    {
+        "id": "7f99c22ada064fb48cd81446d855dc66",
+        "repo_url": "https://github.com/surma/stacksignal",
+        "repo_type": "git",
+        "forward_url": "http://surmair.de/about_stacksignal",
+        "alias": "/stacksignal"
+    }
+]
+
+
+Try to get a list for an invalid domain.
+GET /domains/some.domain.com
+< 404
+Could not find domain
+
+
+Add a new alias to a domain.
+PUT /domains/some.domain.com
+{
+    "repo_url": "https://github.com/voxelbrain/goptions",
+    "repo_type": "git",
+    "forward_url": "http://surmair.de/about_goptions",
+    "alias": "/goptions"
+}
+< 201
+"3eac584268d346a684881c02223e8f5b"
+
+
+Update an existing alias (by defining the `id` field).
+PUT /domains/some.domain.com
+{
+    "id": "7f99c22ada064fb48cd81446d855dc66",
+    "repo_url": "https://github.com/surma/stacksignal",
+    "repo_type": "git",
+    "forward_url": "http://surmas-nonexistent-homepage.de/about_stacksignal",
+    "alias": "/stacksignal"
+}
+< 201
+"7f99c22ada064fb48cd81446d855dc66"
+
+
+Try to add an alias with invalid data.
+PUT /domains/some.domain.com
+< 400
+Invalid alias object
+
+
+Try to add an alias to an invalid domain.
+PUT /domains/{domainname}
+< 404
+Could not add alias
+
+
+Delete an alias.
+DELETE /domains/some.domain.com/7f99c22ada064fb48cd81446d855dc66
+< 204
+
+
+Delete an invalid alias.
+DELETE /domains/{domainname}/{aliasid}
+< 404
+Could not delete alias
+
