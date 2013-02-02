@@ -1,4 +1,4 @@
-ImportAlias is a webservice to manage [vanity remote import paths][1]
+GImportAlias is a webservice to manage [vanity remote import paths][1]
 as offerd by the `go` tool of the [Go programming language][2]. Its
 aim is to keep the necessary effort to maintain your aliases to a
 minimum.
@@ -34,4 +34,4 @@ For additional flags, set the `--help` flag.
 [4]: http://oauth.net/
 
 ---
-Version 1.1.1
+Version 1.1.2
