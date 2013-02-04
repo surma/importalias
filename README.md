@@ -34,4 +34,4 @@ For additional flags, set the `--help` flag.
 [4]: http://oauth.net/
 
 ---
-Version 1.1.2
+Version 1.1.3
