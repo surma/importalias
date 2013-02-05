@@ -20,7 +20,7 @@ func (m *Metapage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		domain, err := m.domainmgr.FindDomain(r.Host)
 		if err != nil {
 			log.Printf("Unknown domain: %s", r.Host)
-			http.Redirect(w, r, "http://"+options.Hostname+"/unknown", http.StatusMovedPermanently)
+			http.Redirect(w, r, "http://"+options.Hostname+"/#/unknown", http.StatusMovedPermanently)
 			return
 		}
 		META_TEMPLATE.Execute(w, map[string]interface{}{
