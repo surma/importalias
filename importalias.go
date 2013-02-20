@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -59,8 +60,7 @@ func main() {
 	approuter.PathPrefix("/").Handler(http.FileServer(http.Dir(options.StaticDir)))
 	mainrouter.PathPrefix("/").Handler(&Metapage{domainmgr})
 	log.Printf("Running webserver...")
-	log.Fatalf("Failed to run webserver: %s",
-		http.ListenAndServe(options.ListenAddress.String(), mainrouter))
+	log.Fatalf("Failed to run webserver: %s", http.ListenAndServe(options.ListenAddress.String(), mainrouter))
 }
 
 func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
@@ -70,45 +70,51 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 			log.Printf("Unknown authenticator \"%s\", skipping", authkey.Name)
 			continue
 		}
-		authconfig.AuthKey = authkey
-
-		var auth Authenticator
-		var ex Extractor
 		prefix, _ := authrouter.Path("/" + authkey.Name).URL()
-		switch authconfig.Extractor.Type {
-		case "json":
-			ex = NewJSONExtractor(authconfig.Extractor.URL, authconfig.Extractor.Field)
-		default:
-			log.Printf("Unknown extractor \"%s\", skipping", authconfig.Extractor.Type)
-			continue
+		authconfig.AuthKey = authkey
+		authconfig.RedirectURL = prefix.String() + "/callback"
+
+		if authapp := createAuthApp(authconfig); authapp != nil {
+			log.Printf("Enabling %s OAuth on %s with ClientID %s", authconfig.AuthKey.Name, prefix.String(), authconfig.AuthKey.ClientID)
+			authrouter.PathPrefix("/" + authkey.Name).Handler(
+				context.ClearHandler(HandlerList{
+					SilentHandler(SessionHandler(options.SessionStore, int(options.SessionTTL/time.Second))),
+					SilentHandler(http.StripPrefix(prefix.Path, authapp)),
+					LoginHandler(usermgr),
+				}))
 		}
-		switch authconfig.Type {
-		case "oauth":
-			log.Printf("Enabling %s OAuth on %s with ClientID %s", authkey.Name, prefix.String(), authconfig.AuthKey.ClientID)
-			auth = NewOAuthAuthenticator(authkey.Name, &oauth.Config{
-				ClientId:     authconfig.AuthKey.ClientID,
-				ClientSecret: authconfig.AuthKey.Secret,
-				AuthURL:      authconfig.AuthURL,
-				TokenURL:     authconfig.TokenURL,
-				Scope:        authconfig.Scope,
-				RedirectURL:  prefix.String() + "/callback",
-			}, ex, usermgr)
-		default:
-			log.Printf("Unknown authenticator \"%s\", skipping", authconfig.Type)
-			continue
-		}
-		authrouter.PathPrefix("/" + authkey.Name).Handler(
-			context.ClearHandler(HandlerList{
-				SilentHandler(SessionHandler(options.SessionStore, int(options.SessionTTL/time.Second))),
-				http.StripPrefix(prefix.Path, auth),
-			}))
 	}
 	authrouter.Handle("/", authListHandler(options.AuthConfigs))
 	authrouter.Path("/logout").Handler(
 		context.ClearHandler(HandlerList{
 			SilentHandler(SessionHandler(options.SessionStore, int(options.SessionTTL/time.Second))),
-			http.HandlerFunc(LogoutHandler),
+			LogoutHandler(),
 		}))
+}
+
+func createAuthApp(authconfig *AuthConfig) (auth AuthenticationService) {
+	var ex Extractor
+	switch authconfig.Extractor.Type {
+	case "json":
+		ex = NewJSONExtractor(authconfig.Extractor.URL, authconfig.Extractor.Field)
+	default:
+		log.Printf("Unknown extractor \"%s\", skipping", authconfig.Extractor.Type)
+		return
+	}
+	switch authconfig.Type {
+	case "oauth":
+		auth = NewOAuthAuthenticationService(authconfig.AuthKey.Name, &oauth.Config{
+			ClientId:     authconfig.AuthKey.ClientID,
+			ClientSecret: authconfig.AuthKey.Secret,
+			AuthURL:      authconfig.AuthURL,
+			TokenURL:     authconfig.TokenURL,
+			Scope:        authconfig.Scope,
+			RedirectURL:  authconfig.RedirectURL,
+		}, ex)
+	default:
+		panic(fmt.Sprintf("Unknown authenticator \"%s\", skipping", authconfig.Type))
+	}
+	return
 }
 
 func setupApiApps(apirouter *mux.Router, domainmgr DomainManager, usermgr UserManager) {

@@ -25,12 +25,13 @@ func (s *SessionStore) MarshalGoption(key string) error {
 }
 
 type AuthConfig struct {
-	Type      string `json:"type"`
-	AuthURL   string `json:"auth_url"`
-	TokenURL  string `json:"token_url"`
-	Scope     string `json:"scope"`
-	AuthKey   *AuthKey
-	Extractor struct {
+	Type        string `json:"type"`
+	AuthURL     string `json:"auth_url"`
+	TokenURL    string `json:"token_url"`
+	RedirectURL string `json:"redirect_url"`
+	Scope       string `json:"scope"`
+	AuthKey     *AuthKey
+	Extractor   struct {
 		Type  string `json:"type"`
 		URL   string `json:"url"`
 		Field string `json:"field"`
