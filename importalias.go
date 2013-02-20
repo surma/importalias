@@ -12,7 +12,7 @@ import (
 	"github.com/surma-dump/context"
 	"github.com/voxelbrain/goptions"
 
-	"code.google.com/p/goauth2/oauth"
+	oauth2 "code.google.com/p/goauth2/oauth"
 
 	"labix.org/v2/mgo"
 )
@@ -75,7 +75,7 @@ func setupAuthApps(authrouter *mux.Router, usermgr UserManager) {
 		authconfig.RedirectURL = prefix.String() + "/callback"
 
 		if authapp := createAuthApp(authconfig); authapp != nil {
-			log.Printf("Enabling %s OAuth on %s with ClientID %s", authconfig.AuthKey.Name, prefix.String(), authconfig.AuthKey.ClientID)
+			log.Printf("Mounting %s authentication service on %s with ClientID %s", authconfig.AuthKey.Name, prefix.String(), authconfig.AuthKey.ClientID)
 			authrouter.PathPrefix("/" + authkey.Name).Handler(
 				context.ClearHandler(HandlerList{
 					SilentHandler(SessionHandler(options.SessionStore, int(options.SessionTTL/time.Second))),
@@ -102,8 +102,8 @@ func createAuthApp(authconfig *AuthConfig) (auth AuthenticationService) {
 		return
 	}
 	switch authconfig.Type {
-	case "oauth":
-		auth = NewOAuthAuthenticationService(authconfig.AuthKey.Name, &oauth.Config{
+	case "oauth2":
+		auth = NewOAuth2AuthenticationService(authconfig.AuthKey.Name, &oauth2.Config{
 			ClientId:     authconfig.AuthKey.ClientID,
 			ClientSecret: authconfig.AuthKey.Secret,
 			AuthURL:      authconfig.AuthURL,

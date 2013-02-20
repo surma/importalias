@@ -7,20 +7,20 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/surma-dump/context"
 
-	"code.google.com/p/goauth2/oauth"
+	oauth2 "code.google.com/p/goauth2/oauth"
 )
 
 type AuthenticationService http.Handler
 
-type OAuthAuthenticationService struct {
+type OAuth2AuthenticationProvider struct {
 	authname  string
-	config    *oauth.Config
+	config    *oauth2.Config
 	extractor Extractor
 	*mux.Router
 }
 
-func NewOAuthAuthenticationService(name string, c *oauth.Config, e Extractor) *OAuthAuthenticationService {
-	a := &OAuthAuthenticationService{
+func NewOAuth2AuthenticationService(name string, c *oauth2.Config, e Extractor) *OAuth2AuthenticationProvider {
+	a := &OAuth2AuthenticationProvider{
 		authname:  name,
 		config:    c,
 		extractor: e,
@@ -35,12 +35,12 @@ func NewOAuthAuthenticationService(name string, c *oauth.Config, e Extractor) *O
 	return a
 }
 
-func (a *OAuthAuthenticationService) authHandler(w http.ResponseWriter, r *http.Request) {
+func (a *OAuth2AuthenticationProvider) authHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, a.config.AuthCodeURL(""), http.StatusFound)
 }
 
-func (a *OAuthAuthenticationService) authCallbackHandler(w http.ResponseWriter, r *http.Request) {
-	transport := (&oauth.Transport{Config: a.config})
+func (a *OAuth2AuthenticationProvider) authCallbackHandler(w http.ResponseWriter, r *http.Request) {
+	transport := (&oauth2.Transport{Config: a.config})
 	_, err := transport.Exchange(r.FormValue("code"))
 	if err != nil {
 		log.Printf("%s: Could not get access token: %s", a.authname, err)
