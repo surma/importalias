@@ -13,6 +13,7 @@ import (
 	"github.com/voxelbrain/goptions"
 
 	oauth2 "code.google.com/p/goauth2/oauth"
+	oauth1 "github.com/surma-dump/oauth1a"
 
 	"labix.org/v2/mgo"
 )
@@ -107,12 +108,23 @@ func createAuthApp(authconfig *AuthConfig) (auth AuthenticationService) {
 			ClientId:     authconfig.AuthKey.ClientID,
 			ClientSecret: authconfig.AuthKey.Secret,
 			AuthURL:      authconfig.AuthURL,
-			TokenURL:     authconfig.TokenURL,
+			TokenURL:     authconfig.AccessTokenURL,
 			Scope:        authconfig.Scope,
 			RedirectURL:  authconfig.RedirectURL,
 		}, ex)
+	case "oauth1":
+		auth = NewOAuth1AuthenticationService(authconfig.AuthKey.Name, &oauth1.Service{
+			AuthorizeURL: authconfig.AuthURL,
+			RequestURL:   authconfig.RequestTokenURL,
+			AccessURL:    authconfig.AccessTokenURL,
+			ClientConfig: &oauth1.ClientConfig{
+				ConsumerKey:    authconfig.AuthKey.ClientID,
+				ConsumerSecret: authconfig.AuthKey.Secret,
+				CallbackURL:    authconfig.RedirectURL,
+			},
+		}, ex, options.SessionStore)
 	default:
-		panic(fmt.Sprintf("Unknown authenticator \"%s\", skipping", authconfig.Type))
+		panic(fmt.Sprintf("Unknown authenticator \"%s\"", authconfig.Type))
 	}
 	return
 }

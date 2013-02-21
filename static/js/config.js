@@ -13,6 +13,11 @@ define([], function() {
 				name: "Google",
 				icon: "glyphicons_382_google_plus.png",
 			},
+			"twitter": {
+				id: "twitter",
+				name: "Twitter",
+				icon: "glyphicons_382_google_plus.png",
+			},
 		},
 	}
 });

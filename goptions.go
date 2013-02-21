@@ -25,13 +25,14 @@ func (s *SessionStore) MarshalGoption(key string) error {
 }
 
 type AuthConfig struct {
-	Type        string `json:"type"`
-	AuthURL     string `json:"auth_url"`
-	TokenURL    string `json:"token_url"`
-	RedirectURL string `json:"redirect_url"`
-	Scope       string `json:"scope"`
-	AuthKey     *AuthKey
-	Extractor   struct {
+	Type            string `json:"type"`
+	AuthURL         string `json:"auth_url"`
+	AccessTokenURL  string `json:"access_token_url"`
+	RequestTokenURL string `json:"request_token_url"`
+	RedirectURL     string `json:"redirect_url"`
+	Scope           string `json:"scope"`
+	AuthKey         *AuthKey
+	Extractor       struct {
 		Type  string `json:"type"`
 		URL   string `json:"url"`
 		Field string `json:"field"`
@@ -43,12 +44,12 @@ type AuthList map[string]*AuthConfig
 func (a *AuthList) MarshalGoption(file string) error {
 	f, err := os.Open(file)
 	if err != nil {
-		return fmt.Errorf("Could not open file: %s", err)
+		return fmt.Errorf("Could not open file %s: %s", file, err)
 	}
 	defer f.Close()
 	err = json.NewDecoder(f).Decode(a)
 	if err != nil {
-		return fmt.Errorf("Could not decode file: %s", err)
+		return fmt.Errorf("Could not decode file %s: %s", file, err)
 	}
 	return nil
 }
